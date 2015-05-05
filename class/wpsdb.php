@@ -1317,9 +1317,9 @@ class WPSDB extends WPSDB_Base {
 
 		<div class="wrap wpsdb">
 
-			<div id="icon-tools" class="icon32"><br /></div><h2>Migrate DB</h2>
+			<div id="icon-tools" class="icon32"><br /></div><h2><?php _e( 'Sync DB', 'wp-sync-db' ); ?></h2>
 
-			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab nav-tab-active js-action-link migrate" data-div-name="migrate-tab"><?php _e( 'Migrate', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link settings" data-div-name="settings-tab"><?php _e( 'Settings', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link help" data-div-name="help-tab"><?php _e( 'Help', 'wp-sync-db' ); ?></a></h2>
+			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab nav-tab-active js-action-link migrate" data-div-name="migrate-tab"><?php _e( 'Sync DB', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link settings" data-div-name="settings-tab"><?php _e( 'Settings', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link help" data-div-name="help-tab"><?php _e( 'Help', 'wp-sync-db' ); ?></a></h2>
 
 			<?php do_action( 'wpsdb_notices' ); ?>
 
@@ -1338,7 +1338,7 @@ class WPSDB extends WPSDB_Base {
 				}
 				?>
 				<div class="updated warning inline-message">
-					<strong>Update Required</strong> &mdash;
+					<strong><?php _e( 'Update Required', 'wp-sync-db' ); ?></strong> &mdash;
 					<?php printf( __( 'The version of the %1$s addon you have installed%2$s is out-of-date and will not work with this version WP Sync DB. <a href="%3$s">Update Now</a>', 'wp-sync-db' ), $addon['name'], $version, $update_url ); ?>
 				</div>
 			<?php
@@ -1348,7 +1348,7 @@ class WPSDB extends WPSDB_Base {
 			if ( function_exists( 'ini_get' ) && ini_get( 'safe_mode' ) && !$hide_warning ) { ?>
 				<div class="updated warning inline-message">
 					<?php
-					_e( "<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can't extend the run time of the script and ensure it doesn't time out before the migration completes. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. However, if you have trouble, we can't help you until you turn off safe mode.", 'wp-sync-db' );
+					_e( '<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can\'t extend the run time of the script and ensure it doesn\'t time out before the migration completes. We haven\'t disabled the plugin however, so you\'re free to cross your fingers and hope for the best. However, if you have trouble, we can\'t help you until you turn off safe mode.', 'wp-sync-db' );
 					if ( function_exists( 'ini_get' ) ) {
 						printf( __( 'Your current PHP run time limit is set to %s seconds.', 'wp-sync-db' ), ini_get( 'max_execution_time' ) );
 					} ?>
@@ -1358,7 +1358,7 @@ class WPSDB extends WPSDB_Base {
 			?>
 
 			<div class="updated warning ie-warning inline-message" style="display: none;">
-				<?php _e( "<strong>Internet Explorer Not Supported</strong> &mdash; Less than 2% of our customers use IE, so we've decided not to spend time supporting it. We ask that you use Firefox or a Webkit-based browser like Chrome or Safari instead. If this is a problem for you, please let us know.", 'wp-sync-db' ); ?>
+				<?php _e( '<strong>Internet Explorer Not Supported</strong> &mdash; Less than 2% of our customers use IE, so we\'ve decided not to spend time supporting it. We ask that you use Firefox or a Webkit-based browser like Chrome or Safari instead. If this is a problem for you, please let us know.', 'wp-sync-db' ); ?>
 			</div>
 
 			<?php
@@ -2168,12 +2168,12 @@ class WPSDB extends WPSDB_Base {
 	}
 
 	function network_admin_menu() {
-		$hook_suffix = add_submenu_page( 'settings.php', 'Migrate DB', 'Migrate DB', 'manage_network_options', 'wp-sync-db', array( $this, 'options_page' ) );
+		$hook_suffix = add_submenu_page( 'settings.php', __( 'Sync DB', 'wp-sync-db' ), __( 'Sync DB', 'wp-sync-db' ), 'manage_network_options', 'wp-sync-db', array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
 
 	function admin_menu() {
-		$hook_suffix = add_management_page( 'Migrate DB', 'Migrate DB', 'export', 'wp-sync-db', array( $this, 'options_page' ) );
+		$hook_suffix = add_management_page( __( 'Sync DB', 'wp-sync-db' ), __( 'Sync DB', 'wp-sync-db' ), 'export', 'wp-sync-db', array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
 
