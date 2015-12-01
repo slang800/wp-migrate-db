@@ -499,7 +499,7 @@ class WPSDB extends WPSDB_Base {
 		}
 		else {
 			do_action( 'wpsdb_migration_complete', 'push', $_POST['url'] );
-			$data = $_POST;
+			$data = $this->get_post_data_filtered();
 			if ( isset( $data['nonce'] ) ) {
 				unset( $data['nonce'] );
 			}
@@ -686,7 +686,7 @@ class WPSDB extends WPSDB_Base {
 		if ( $_POST['stage'] == 'backup' && $_POST['intent'] != 'savefile' ) {
 			// if performing a push we need to backup the REMOTE machine's DB
 			if ( $_POST['intent'] == 'push' ) {
-				$data = $_POST;
+				$data = $this->get_post_data_filtered();
 				if ( isset( $data['nonce'] ) ) {
 					unset( $data['nonce'] );
 				}
@@ -738,7 +738,7 @@ class WPSDB extends WPSDB_Base {
 			return $result;
 		}
 		else {
-			$data = $_POST;
+			$data = $this->get_post_data_filtered();
 			if ( isset( $data['nonce'] ) ) {
 				unset( $data['nonce'] );
 			}
@@ -752,6 +752,10 @@ class WPSDB extends WPSDB_Base {
 			if ( isset( $data['sig'] ) ) {
 				unset( $data['sig'] );
 			}
+      // fix stupid polylang possible injection in our array data, which breaks the vreification on the remote side
+      if ( isset( $data['pll_ajax_backend'] ) ) {
+        unset( $data['pll_ajax_backend'] );
+      }
 			$ajax_url = trailingslashit( $data['url'] ) . 'wp-admin/admin-ajax.php';
 			$data['primary_keys'] = stripslashes( $data['primary_keys'] );
 			$data['sig'] = $this->create_signature( $data, $data['key'] );
@@ -2440,7 +2444,7 @@ class WPSDB extends WPSDB_Base {
 			break;
 
 			case 'push' :
-				$data = $_POST;
+				$data = $this->get_post_data_filtered();
 				$data['action'] = 'wpsdb_process_push_migration_cancellation';
 				$data['temp_prefix'] = $this->temp_prefix;
 				$ajax_url = trailingslashit( $data['url'] ) . 'wp-admin/admin-ajax.php';
@@ -2517,5 +2521,21 @@ class WPSDB extends WPSDB_Base {
 	function empty_current_chunk() {
 		$this->current_chunk = '';
 	}
+
+  /**
+   * Filter POST data to avoid signature verification error
+   *
+   * @return array POST data filtered
+   */
+  function get_post_data_filtered() {
+    $data = $_POST;
+
+    // Fix polylang pluing injection in POST data, which breaks the signature verification
+    if ( isset( $data['pll_ajax_backend'] ) ) {
+      unset( $data['pll_ajax_backend'] );
+    }
+
+    return $data;
+  }
 
 }
