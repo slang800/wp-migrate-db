@@ -2,9 +2,9 @@
 var hooks = [];
 var call_stack = [];
 var non_fatal_errors = '';
-var migration_error = false;
+var syncing_error = false;
 var connection_data;
-var next_step_in_migration;
+var next_step_in_syncing;
 
 function wpsdb_call_next_hook() {
   if (!call_stack.length) {

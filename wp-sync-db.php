@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WP Sync DB
-Description: Export, push, and pull to migrate your WordPress databases.
+Description: Export, push, and pull to sync your WordPress databases as a MySQL data dump (much like phpMyAdmin), does a find and replace on URLs and file paths, then allows you to save it to your computer.
 Author: Sean Lang
 Version: 1.5
 Author URI: http://slang.cx

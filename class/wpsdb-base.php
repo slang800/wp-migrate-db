@@ -18,7 +18,7 @@ class WPSDB_Base {
 	protected $temp_prefix = '_mig_';
 	protected $invalid_content_verification_error;
 	protected $addons;
-	protected $doing_cli_migration = false;
+	protected $doing_cli_syncing = false;
 
 	function __construct( $plugin_file_path ) {
 		$this->settings = get_option( 'wpsdb_settings' );
@@ -367,12 +367,12 @@ class WPSDB_Base {
 		return $this->plugin_file_path;
 	}
 
-	function set_cli_migration() {
-		$this->doing_cli_migration = true;
+	function set_cli_syncing() {
+		$this->doing_cli_syncing = true;
 	}
 
 	function end_ajax( $return = false ) {
-		if( defined( 'DOING_WPSDB_TESTS' ) || $this->doing_cli_migration ) {
+		if( defined( 'DOING_WPSDB_TESTS' ) || $this->doing_cli_syncing ) {
 			return ( false === $return ) ? NULL : $return;
 		}
 
@@ -381,7 +381,7 @@ class WPSDB_Base {
 	}
 
 	function check_ajax_referer( $action ) {
-		if ( defined( 'DOING_WPSDB_TESTS' ) || $this->doing_cli_migration ) return;
+		if ( defined( 'DOING_WPSDB_TESTS' ) || $this->doing_cli_syncing ) return;
 		$result = check_ajax_referer( $action, 'nonce', false );
 		if ( false === $result ) {
 			$return = array( 'wpsdb_error' => 1, 'body' => sprintf( __( 'Invalid nonce for: %s', 'wp-sync-db' ), $action ) );

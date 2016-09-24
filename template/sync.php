@@ -17,7 +17,7 @@ if( ! $is_default_profile ) {
 	if( isset( $loaded_profile['exclude_revisions'] ) ) {
 		$convert_exclude_revisions = true;
 	}
-	/* We used to provide users the option of selecting which post types they'd like to migrate.
+	/* We used to provide users the option of selecting which post types they'd like to sync.
 	 * We found that our wording for this funtionality was a little confusing so we switched it to instead read "Exclude Post Types"
 	 * Once we made the switch we needed a way of inverting their saved post type selection to instead exclude the select post types.
 	 * This was required to make their select compatible with the new "exclude" wording.
@@ -27,7 +27,7 @@ if( ! $is_default_profile ) {
 	 * At the time of page request $this->maybe_update_profile() cannot be used to update a pull profile as we don't know which
 	 * post types exist on the remote machine. As such we invert this selection later using the $convert_post_type_selection flag below.
 	*/
-	if ( isset( $loaded_profile['post_type_migrate_option'] ) && 'migrate_select_post_types' == $loaded_profile['post_type_migrate_option'] && 'pull' == $loaded_profile['action'] ) {
+	if ( isset( $loaded_profile['post_type_sync_option'] ) && 'sync_select_post_types' == $loaded_profile['post_type_sync_option'] && 'pull' == $loaded_profile['action'] ) {
 		$convert_post_type_selection = true;
 	}
 	$loaded_profile = $this->maybe_update_profile( $loaded_profile, $_GET['wpsdb-profile'] );
@@ -53,9 +53,9 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 	var wpsdb_convert_post_type_selection = <?php echo ( $convert_post_type_selection ? '1' : '0' ); ?>;
 </script>
 
-<div class="migrate-tab content-tab">
+<div class="sync-tab content-tab">
 
-	<form method="post" id="migrate-form" action="#migrate" enctype="multipart/form-data">
+	<form method="post" id="sync-form" action="#sync" enctype="multipart/form-data">
 
 		<?php if( count( $this->settings['profiles'] ) > 0 ){ ?>
 			<a href="<?php echo $this->plugin_base; ?>" class="return-to-profile-selection clearfix">&larr; <?php _e( 'Back to select a saved profile', 'wp-sync-db' ); ?></a>
@@ -63,7 +63,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 
 		<div class="option-section">
 
-			<ul class="option-group migrate-selection">
+			<ul class="option-group sync-selection">
 				<li>
 					<label for="savefile">
 					<input id="savefile" type="radio" value="savefile" name="action"<?php echo ( $loaded_profile['action'] == 'savefile' ? ' checked="checked"' : ''  ); ?> />
@@ -237,17 +237,17 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 
 				<div class="indent-wrap expandable-content table-select-wrap" style="display: none;">
 
-					<ul class="option-group table-migrate-options">
+					<ul class="option-group table-sync-options">
 						<li>
-							<label for="migrate-only-with-prefix">
-							<input id="migrate-only-with-prefix" class="multiselect-toggle" type="radio" value="migrate_only_with_prefix" name="table_migrate_option"<?php echo ( $loaded_profile['table_migrate_option'] == 'migrate_only_with_prefix' ? ' checked="checked"' : '' ); ?> />
-							<?php _e( 'Migrate all tables with prefix', 'wp-sync-db' ); ?> "<span class="table-prefix"><?php echo $wpdb->prefix; ?></span>"
+							<label for="sync-only-with-prefix">
+							<input id="sync-only-with-prefix" class="multiselect-toggle" type="radio" value="sync_only_with_prefix" name="table_sync_option"<?php echo ( $loaded_profile['table_sync_option'] == 'sync_only_with_prefix' ? ' checked="checked"' : '' ); ?> />
+							<?php _e( 'Sync all tables with prefix', 'wp-sync-db' ); ?> "<span class="table-prefix"><?php echo $wpdb->prefix; ?></span>"
 							</label>
 						</li>
 						<li>
-							<label for="migrate-selected">
-							<input id="migrate-selected" class="multiselect-toggle show-multiselect" type="radio" value="migrate_select" name="table_migrate_option"<?php echo ( $loaded_profile['table_migrate_option'] == 'migrate_select' ? ' checked="checked"' : '' ); ?> />
-							<?php _e( 'Migrate only selected tables below', 'wp-sync-db' ); ?>
+							<label for="sync-selected">
+							<input id="sync-selected" class="multiselect-toggle show-multiselect" type="radio" value="sync_select" name="table_sync_option"<?php echo ( $loaded_profile['table_sync_option'] == 'sync_select' ? ' checked="checked"' : '' ); ?> />
+							<?php _e( 'Sync only selected tables below', 'wp-sync-db' ); ?>
 							</label>
 						</li>
 					</ul>
@@ -320,7 +320,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 							<a href="#" class="general-helper replace-guid-helper js-action-link"></a>
 
 							<div class="replace-guids-info helper-message">
-								<?php printf( __( 'Although the <a href="%s" target="_blank">WordPress Codex emphasizes</a> that GUIDs should not be changed, this is limited to sites that are already live. If the site has never been live, I recommend replacing the GUIDs. For example, you may be developing a new site locally at dev.somedomain.com and want to migrate the site live to somedomain.com.', 'wp-sync-db' ), 'http://codex.wordpress.org/Changing_The_Site_URL#Important_GUID_Note' ); ?>
+								<?php printf( __( 'Although the <a href="%s" target="_blank">WordPress Codex emphasizes</a> that GUIDs should not be changed, this is limited to sites that are already live. If the site has never been live, I recommend replacing the GUIDs. For example, you may be developing a new site locally at dev.somedomain.com and want to sync the site live to somedomain.com.', 'wp-sync-db' ), 'http://codex.wordpress.org/Changing_The_Site_URL#Important_GUID_Note' ); ?>
 							</div>
 						</li>
 						<li>
@@ -332,7 +332,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 						<li class="keep-active-plugins">
 							<label for="keep-active-plugins">
 							<input id="keep-active-plugins" type="checkbox" value="1" autocomplete="off" name="keep_active_plugins"<?php $this->maybe_checked( $loaded_profile['keep_active_plugins'] ); ?> />
-							<?php _e( 'Do not migrate the \'active_plugins\' setting (i.e. which plugins are activated/deactivated)', 'wp-sync-db' ); ?>
+							<?php _e( 'Do not sync the \'active_plugins\' setting (i.e. which plugins are activated/deactivated)', 'wp-sync-db' ); ?>
 							</label>
 						</li>
 						<li>
@@ -364,7 +364,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 						<li>
 							<label for="backup-selected">
 							<input type="radio" id="backup-selected" value="backup_selected" name="backup_option"<?php echo ( $loaded_profile['backup_option'] == 'backup_selected' ? ' checked="checked"' : '' ); ?> >
-							<?php _e( 'Backup only tables selected for migration', 'wp-sync-db' ); ?>
+							<?php _e( 'Backup only tables selected for syncing', 'wp-sync-db' ); ?>
 							</label>
 						</li>
 						<li>
@@ -400,10 +400,10 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 
 			<?php do_action( 'wpsdb_after_advanced_options' ); ?>
 
-			<div class="option-section save-migration-profile-wrap">
-				<label for="save-migration-profile" class="save-migration-profile checkbox-label">
-				<input id="save-migration-profile" type="checkbox" value="1" name="save_migration_profile"<?php echo ( ! $is_default_profile ? ' checked="checked"' : '' ); ?> />
-				<?php _e( 'Save Migration Profile', 'wp-sync-db' ); ?><span class="option-description"><?php _e( 'Save the above settings for the next time you do a similiar migration', 'wp-sync-db' ); ?></span>
+			<div class="option-section save-syncing-profile-wrap">
+				<label for="save-syncing-profile" class="save-syncing-profile checkbox-label">
+				<input id="save-syncing-profile" type="checkbox" value="1" name="save_syncing_profile"<?php echo ( ! $is_default_profile ? ' checked="checked"' : '' ); ?> />
+				<?php _e( 'Save Syncing Profile', 'wp-sync-db' ); ?><span class="option-description"><?php _e( 'Save the above settings for the next time you do a similiar syncing', 'wp-sync-db' ); ?></span>
 				</label>
 
 				<div class="indent-wrap expandable-content">
@@ -413,7 +413,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 								<li>
 									<span class="delete-profile" data-profile-id="<?php echo $profile_id; ?>"></span>
 									<label for="profile-<?php echo $profile_id; ?>">
-									<input id="profile-<?php echo $profile_id; ?>" type="radio" value="<?php echo --$profile_id; ?>" name="save_migration_profile_option"<?php echo ( $loaded_profile['name'] == $profile['name'] ) ? ' checked="checked"' : ''; ?> />
+									<input id="profile-<?php echo $profile_id; ?>" type="radio" value="<?php echo --$profile_id; ?>" name="save_syncing_profile_option"<?php echo ( $loaded_profile['name'] == $profile['name'] ) ? ' checked="checked"' : ''; ?> />
 									<?php echo $profile['name']; ?>
 									</label>
 								</li>
@@ -421,7 +421,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 						?>
 						<li>
 							<label for="create_new" class="create-new-label">
-							<input id="create_new" type="radio" value="new" name="save_migration_profile_option"<?php echo (  $is_default_profile ? ' checked="checked"' : '' ); ?> />
+							<input id="create_new" type="radio" value="new" name="save_syncing_profile_option"<?php echo (  $is_default_profile ? ' checked="checked"' : '' ); ?> />
 							<?php _e( 'Create new profile', 'wp-sync-db' ); ?>
 							</label>
 							<input type="text" placeholder="e.g. Live Site" name="create_new_profile" class="create-new-profile" />
@@ -433,26 +433,26 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 			<div class="notification-message warning-notice prefix-notice pull">
 				<h4><?php _e( 'Warning: Different Table Prefixes', 'wp-sync-db' ); ?></h4>
 
-				<p><?php _e( 'Whoa! We\'ve detected that the database table prefix differs between installations. Clicking the Migrate DB button below will create new database tables in your local database with prefix "<span class="remote-prefix"></span>".', 'wp-sync-db' ); ?></p>
+				<p><?php _e( 'Whoa! We\'ve detected that the database table prefix differs between installations. Clicking the Sync DB button below will create new database tables in your local database with prefix "<span class="remote-prefix"></span>".', 'wp-sync-db' ); ?></p>
 
-				<p><?php printf( __( 'However, your local install is configured to use table prefix "%1$s" and will ignore the migrated tables. So, <b>AFTER</b> migration is complete, you will need to edit your local install\'s wp-config.php and change the "%1$s" variable to "<span class="remote-prefix"></span>".', 'wp-sync-db' ), $wpdb->prefix, $wpdb->prefix ); ?></p>
+				<p><?php printf( __( 'However, your local install is configured to use table prefix "%1$s" and will ignore the synced tables. So, <b>AFTER</b> syncing is complete, you will need to edit your local install\'s wp-config.php and change the "%1$s" variable to "<span class="remote-prefix"></span>".', 'wp-sync-db' ), $wpdb->prefix, $wpdb->prefix ); ?></p>
 
-				<p><?php _e( 'This will allow your local install the use the migrated tables. Once you do this, you shouldn\'t have to do it again.', 'wp-sync-db' ); ?></p>
+				<p><?php _e( 'This will allow your local install the use the synced tables. Once you do this, you shouldn\'t have to do it again.', 'wp-sync-db' ); ?></p>
 			</div>
 
 			<div class="notification-message warning-notice prefix-notice push">
 				<h4><?php _e( 'Warning: Different Table Prefixes', 'wp-sync-db' ); ?></h4>
 
-				<p><?php printf( __( 'Whoa! We\'ve detected that the database table prefix differs between installations. Clicking the Migrate DB button below will create new database tables in the remote database with prefix "%s".', 'wp-sync-db' ), $wpdb->prefix ); ?></p>
+				<p><?php printf( __( 'Whoa! We\'ve detected that the database table prefix differs between installations. Clicking the Sync DB button below will create new database tables in the remote database with prefix "%s".', 'wp-sync-db' ), $wpdb->prefix ); ?></p>
 
-				<p><?php printf( __( 'However, your remote install is configured to use table prefix "<span class="remote-prefix"></span>" and will ignore the migrated tables. So, <b>AFTER</b> migration is complete, you will need to edit your remote install\'s wp-config.php and change the "<span class="remote-prefix"></span>" variable to "%s".', 'wp-sync-db' ), $wpdb->prefix ); ?></p>
+				<p><?php printf( __( 'However, your remote install is configured to use table prefix "<span class="remote-prefix"></span>" and will ignore the synced tables. So, <b>AFTER</b> syncing is complete, you will need to edit your remote install\'s wp-config.php and change the "<span class="remote-prefix"></span>" variable to "%s".', 'wp-sync-db' ), $wpdb->prefix ); ?></p>
 
-				<p><?php _e( 'This will allow your remote install the use the migrated tables. Once you do this, you shouldn\'t have to do it again.', 'wp-sync-db' ); ?></p>
+				<p><?php _e( 'This will allow your remote install the use the synced tables. Once you do this, you shouldn\'t have to do it again.', 'wp-sync-db' ); ?></p>
 			</div>
 
-			<p class="migrate-db">
+			<p class="sync-db">
 				<input type="hidden" class="remote-json-data" name="remote_json_data" autocomplete="off" />
-				<input class="button-primary migrate-db-button" type="submit" value="Migrate DB" name="Submit" autocomplete="off" />
+				<input class="button-primary sync-db-button" type="submit" value="Sync Now" name="Submit" autocomplete="off" />
 				<input class="button save-settings-button" type="submit" value="Save Profile" name="submit_save_profile" autocomplete="off" />
 			</p>
 
@@ -465,7 +465,7 @@ $loaded_profile = wp_parse_args( $loaded_profile, $this->checkbox_options );
 
 	</form>
 	<?php
-	$this->template( 'migrate-progress' );
+	$this->template( 'sync-progress' );
 	?>
 
-</div> <!-- end .migrate-tab -->
+</div> <!-- end .sync-tab -->

@@ -46,11 +46,11 @@
 		<div class="option-section plugin-compatibility-section">
 			<label for="plugin-compatibility" class="plugin-compatibility bubble">
 			<input id="plugin-compatibility" type="checkbox" name="plugin_compatibility"<?php echo $plugin_compatibility_checked; ?> autocomplete="off"<?php echo $plugin_compatibility_checked; ?> />
-			<?php _e( 'Improve performance and reliability by not loading the following plugins for migration requests', 'wp-sync-db' ); ?>
+			<?php _e( 'Improve performance and reliability by not loading the following plugins for syncing requests', 'wp-sync-db' ); ?>
 			</label>
 			<a href="#" class="general-helper plugin-compatibility-helper js-action-link"></a>
 			<div class="plugin-compatibility-message helper-message bottom">
-				<?php _e( 'Some plugins add a lot of overhead to each request, requiring extra memory and CPU. And some plugins even interfere with migrations and cause them to fail. We recommend only loading plugins that affect migration requests, for example a plugin that hooks into WP Sync DB.', 'wp-sync-db' ); ?></br>
+				<?php _e( 'Some plugins add a lot of overhead to each request, requiring extra memory and CPU. And some plugins even interfere with syncing and cause them to fail. We recommend only loading plugins that affect syncing requests, for example a plugin that hooks into WP Sync DB.', 'wp-sync-db' ); ?></br>
 			</div>
 
 			<div class="indent-wrap expandable-content plugin-compatibility-wrap select-wrap">
