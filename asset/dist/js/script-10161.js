@@ -151,7 +151,7 @@ var MigrationProgressController = {
 
 			if ( 0 !== scrollBarWidth ||  ( 0 === scrollBarWidth && rightPad !== leftPad ) ) {
 				visibleProgressItems.css( 'padding-right', leftPad - scrollBarWidth + 'px' );
-			}
+		}
 		}
 	},
 	newMigration: function( settings ) {
@@ -683,6 +683,13 @@ var MigrationProgressStageView = Backbone.View.extend( {
 				self.$showHideTablesElem.text( self.model.get( 'strings' ).hide_items );
 			}
 		} );
+
+		this.model.on( 'activateTab', function() {
+			if ( 'complete' === wpmdb.current_migration.model.get( 'migrationStatus' ) ) {
+				self.$tabElem.addClass( 'active' ).siblings().removeClass( 'active' );
+				self.$el.addClass( 'active' ).siblings().removeClass( 'active' );
+			}
+		} );
 	},
 	initPauseBeforeFinalizeElem: function() {
 		this.$pauseBeforeFinalizeElem = $( '.pause-before-finalize' );
@@ -855,12 +862,10 @@ module.exports = MigrationProgressStageView;
 	var connection_established = false;
 	var last_replace_switch = '';
 	var doing_ajax = false;
-	var doing_licence_registration_ajax = false;
 	var doing_reset_api_key_ajax = false;
 	var doing_save_profile = false;
 	var doing_plugin_compatibility_ajax = false;
 	var profile_name_edited = false;
-	var checked_licence = false;
 	var show_prefix_notice = false;
 	var show_ssl_notice = false;
 	var force_reconnect = false;
@@ -1227,7 +1232,7 @@ module.exports = MigrationProgressStageView;
 			if ( $( this ).is( ':checked' ) ) {
 				var answer = confirm( wpmdb_strings.mu_plugin_confirmation );
 
-				if ( ! answer ) {
+				if ( !answer ) {
 					$( this ).prop( 'checked', false );
 					return;
 				}
@@ -1281,10 +1286,6 @@ module.exports = MigrationProgressStageView;
 
 		if ( 0 <= navigator.userAgent.indexOf( 'MSIE' ) || 0 <= navigator.userAgent.indexOf( 'Trident' ) ) {
 			$( '.ie-warning' ).show();
-		}
-
-		if ( 0 === wpmdb_data.valid_licence ) {
-			$( '#savefile' ).prop( 'checked', true );
 		}
 		var max_request_size_container = $( '.max-request-size' );
 		var max_request_size_slider = $( '.slider', max_request_size_container );
@@ -1414,90 +1415,6 @@ module.exports = MigrationProgressStageView;
 
 		last_replace_switch = wpmdb_migration_type();
 
-		function check_licence( licence ) {
-			checked_licence = true;
-			$.ajax( {
-				url: ajaxurl,
-				type: 'POST',
-				dataType: 'json',
-				cache: false,
-				data: {
-					action: 'wpmdb_check_licence',
-					licence: licence,
-					context: 'all',
-					nonce: wpmdb_data.nonces.check_licence
-				},
-				error: function( jqXHR, textStatus, errorThrown ) {
-					alert( wpmdb_strings.license_check_problem );
-				},
-				success: function( data ) {
-
-					var $support_content = $( '.support-content' );
-					var $addons_content = $( '.addons-content' );
-					var $licence_content = $( '.licence-status:not(.notification-message)' );
-					var licence_msg, support_msg, addons_msg;
-
-					if ( 'undefined' !== typeof data.dbrains_api_down ) {
-						support_msg = data.dbrains_api_down + data.message;
-						addons_msg = data.dbrains_api_down;
-					} else if ( 'undefined' !== typeof data.errors ) {
-
-						if ( 'undefined' !== typeof data.errors.subscription_expired ) {
-							licence_msg = data.errors.subscription_expired.licence;
-							support_msg = data.errors.subscription_expired.support;
-							addons_msg = data.errors.subscription_expired.addons;
-						} else {
-							var msg = '';
-							for ( var key in data.errors ) {
-								msg += data.errors[ key ];
-							}
-							support_msg = msg;
-							addons_msg = msg;
-						}
-						if ( 'undefined' !== typeof data.addon_content ) {
-							addons_msg += '\n' + data.addon_content;
-						}
-					} else {
-						support_msg = data.message;
-						addons_msg = data.addon_content;
-					}
-
-					$licence_content.stop().fadeOut( fade_duration, function() {
-						$( this )
-							.css( { visibility: 'hidden', display: 'block' } ).slideUp()
-							.empty()
-							.html( licence_msg )
-							.stop()
-							.fadeIn( fade_duration );
-					} );
-					$support_content.stop().fadeOut( fade_duration, function() {
-						$( this )
-							.empty()
-							.html( support_msg )
-							.stop()
-							.fadeIn( fade_duration );
-					} );
-					$addons_content.stop().fadeOut( fade_duration, function() {
-						$( this )
-							.empty()
-							.html( addons_msg )
-							.stop()
-							.fadeIn( fade_duration );
-					} );
-
-				}
-			} );
-		}
-
-		/**
-		 * Handle 'Check License Again' functionality found in expired license messages.
-		 */
-		$( '.content-tab' ).on( 'click', '.check-my-licence-again', function( e ) {
-			e.preventDefault();
-			checked_licence = false;
-			$( e.target ).replaceWith( 'Checking... ' + ajax_spinner );
-			check_licence( null, 'all' );
-		} );
 		function refresh_table_selects() {
 			if ( undefined !== wpmdb_data && undefined !== wpmdb_data.this_tables && undefined !== wpmdb_data.this_table_sizes_hr ) {
 				$push_select = create_table_select( wpmdb_data.this_tables, wpmdb_data.this_table_sizes_hr, $( $push_select ).val() );
@@ -1559,7 +1476,7 @@ module.exports = MigrationProgressStageView;
 		function establish_remote_connection_from_saved_profile() {
 			var action = wpmdb_migration_type();
 			var connection_info = $.trim( $( '.pull-push-connection-info' ).val() ).split( '\n' );
-			if ( 'undefined' === typeof wpmdb_default_profile || true === wpmdb_default_profile || 'savefile' === action || doing_ajax || ! wpmdb_data.is_pro ) {
+			if ( 'undefined' === typeof wpmdb_default_profile || true === wpmdb_default_profile || 'savefile' === action || doing_ajax ) {
 				return;
 			}
 
@@ -1714,106 +1631,6 @@ module.exports = MigrationProgressStageView;
 		$( 'body' ).on( 'click', '.js-action-link', function( e ) {
 			e.preventDefault();
 			$( this ).blur();
-		} );
-
-		function enable_pro_licence( data, licence_key ) {
-			$( '.licence-input, .register-licence' ).remove();
-			$( '.licence-not-entered' ).prepend( data.masked_licence );
-			$( '.support-content' ).empty().html( '<p>' + wpmdb_strings.fetching_license + '<img src="' + spinner_url + '" alt="" class="ajax-spinner general-spinner" /></p>' );
-			check_licence( licence_key );
-
-			$( '.migrate-selection label' ).removeClass( 'disabled' );
-			$( '.migrate-selection input' ).removeAttr( 'disabled' );
-		}
-
-		$( '.licence-input' ).keypress( function( e ) {
-			if ( 13 === e.which ) {
-				e.preventDefault();
-				$( '.register-licence' ).click();
-			}
-		} );
-
-		// registers your licence
-		$( 'body' ).on( 'click', '.register-licence', function( e ) {
-			e.preventDefault();
-
-			if ( doing_licence_registration_ajax ) {
-				return;
-			}
-
-			var licence_key = $.trim( $( '.licence-input' ).val() );
-			var $licence_status = $( '.licence-status' );
-
-			$licence_status.removeClass( 'notification-message error-notice success-notice' );
-
-			if ( '' === licence_key ) {
-				$licence_status.html( '<div class="notification-message error-notice">' + wpmdb_strings.enter_license_key + '</div>' );
-				return;
-			}
-
-			$licence_status.empty().removeClass( 'success' );
-			doing_licence_registration_ajax = true;
-			$( '.button.register-licence' ).after( '<img src="' + spinner_url + '" alt="" class="register-licence-ajax-spinner general-spinner" />' );
-
-			$.ajax( {
-				url: ajaxurl,
-				type: 'POST',
-				dataType: 'JSON',
-				cache: false,
-				data: {
-					action: 'wpmdb_activate_licence',
-					licence_key: licence_key,
-					nonce: wpmdb_data.nonces.activate_licence,
-					context: 'licence'
-				},
-				error: function( jqXHR, textStatus, errorThrown ) {
-					doing_licence_registration_ajax = false;
-					$( '.register-licence-ajax-spinner' ).remove();
-					$licence_status.html( wpmdb_strings.register_license_problem );
-				},
-				success: function( data ) {
-					doing_licence_registration_ajax = false;
-					$( '.register-licence-ajax-spinner' ).remove();
-
-					if ( 'undefined' !== typeof data.errors ) {
-						var msg = '';
-						for ( var key in data.errors ) {
-							msg += data.errors[ key ];
-						}
-						$licence_status.html( msg );
-
-						if ( 'undefined' !== typeof data.masked_licence ) {
-							enable_pro_licence( data, licence_key );
-							$( '.migrate-tab .invalid-licence' ).hide();
-						}
-					} else if ( 'undefined' !== typeof data.wpmdb_error && 'undefined' !== typeof data.body ) {
-						$licence_status.html( data.body );
-					} else {
-						if ( 1 === Number( data.is_first_activation ) ) {
-							wpmdb_strings.welcome_text = wpmdb_strings.welcome_text.replace( '%1$s', 'https://deliciousbrains.com/wp-migrate-db-pro/doc/quick-start-guide/' );
-							wpmdb_strings.welcome_text = wpmdb_strings.welcome_text.replace( '%2$s', 'https://deliciousbrains.com/wp-migrate-db-pro/videos/' );
-
-							$licence_status.after(
-								'<div id="welcome-wrap">' +
-									'<img id="welcome-img" src="' + wpmdb_data.this_plugin_url + 'asset/dist/img/welcome.jpg" />' +
-									'<div class="welcome-text">' +
-										'<h3>' + wpmdb_strings.welcome_title + '</h3>' +
-										'<p>' + wpmdb_strings.welcome_text + '</p>' +
-									'</div>' +
-								'</div>'
-							);
-						}
-
-						$licence_status.html( wpmdb_strings.license_registered ).delay( 5000 ).fadeOut( 1000, function() {
-							$( this ).css( { visibility: 'hidden', display: 'block' } ).slideUp();
-						} );
-						$licence_status.addClass( 'success notification-message success-notice' );
-						enable_pro_licence( data, licence_key );
-						$( '.invalid-licence' ).hide();
-					}
-				}
-			} );
-
 		} );
 
 		// clears the debug log
@@ -2656,7 +2473,7 @@ module.exports = MigrationProgressStageView;
 				$( '.pull-list li' ).append( $connection_info_box );
 				$connection_info_box.show( function() {
 					var connection_textarea = $( this ).find( '.pull-push-connection-info' );
-					if ( ! connection_textarea.val() ) {
+					if ( !connection_textarea.val() ) {
 						connection_textarea.focus();
 					}
 				} );
@@ -2703,7 +2520,7 @@ module.exports = MigrationProgressStageView;
 				$( '.push-list li' ).append( $connection_info_box );
 				$connection_info_box.show( function() {
 					var connection_textarea = $( this ).find( '.pull-push-connection-info' );
-					if ( ! connection_textarea.val() ) {
+					if ( !connection_textarea.val() ) {
 						connection_textarea.focus();
 					}
 				} );
@@ -2839,7 +2656,7 @@ module.exports = MigrationProgressStageView;
 		}
 
 		// hide second section if pull or push is selected with no connection established
-		if ( ( 'pull' === wpmdb_migration_type() || 'push' === wpmdb_migration_type() ) && ! connection_established ) {
+		if ( ( 'pull' === wpmdb_migration_type() || 'push' === wpmdb_migration_type() ) && !connection_established ) {
 			$( '.step-two' ).hide();
 			$( '.connection-status' ).show();
 		}
@@ -2994,35 +2811,12 @@ module.exports = MigrationProgressStageView;
 			$( '.content-tab' ).hide();
 			$( '.' + hash + '-tab' ).show();
 
-			if ( 'settings' === hash ) {
-				if ( true === should_check_licence() ) {
-					$( 'p.licence-status' ).append( 'Checking License... ' ).append( ajax_spinner );
-					check_licence();
-				}
-			}
-
 			if ( 'help' === hash ) {
 				refresh_debug_log();
-				if ( true === should_check_licence() ) {
-					$( '.support-content p' ).append( ajax_spinner );
-					check_licence();
-				}
 			}
 
-			if ( 'addons' === hash && true !== skip_addons_check ) {
-				if ( true === should_check_licence() ) {
-					$( '.addons-content p' ).append( ajax_spinner );
-					check_licence();
-				}
-			}
 		}
 
-		function should_check_licence() {
-			if ( false === checked_licence && '1' === wpmdb_data.has_licence && 'true' === wpmdb_data.is_pro ) {
-				return true;
-			}
-			return false;
-		}
 
 		var hash = '';
 
@@ -3034,7 +2828,6 @@ module.exports = MigrationProgressStageView;
 
 		if ( '' !== get_query_var( 'install-plugin' ) ) {
 			hash = 'addons';
-			checked_licence = true;
 			switch_to_plugin_tab( hash, true );
 		}
 
@@ -3061,7 +2854,7 @@ module.exports = MigrationProgressStageView;
 		$( '.reset-api-key' ).click( function() {
 			var answer = confirm( wpmdb_strings.reset_api_key );
 
-			if ( ! answer || doing_reset_api_key_ajax ) {
+			if ( !answer || doing_reset_api_key_ajax ) {
 				return;
 			}
 
@@ -3167,7 +2960,7 @@ module.exports = MigrationProgressStageView;
 			name = $.trim( $( name ).html() );
 			var answer = confirm( wpmdb_strings.remove_profile.replace( '{{profile}}', name ) );
 
-			if ( ! answer ) {
+			if ( !answer ) {
 				return;
 			}
 			var $profile_li = $( this ).parent();
@@ -3213,7 +3006,7 @@ module.exports = MigrationProgressStageView;
 			var name = $( this ).prev().html();
 			var answer = confirm( wpmdb_strings.remove_profile.replace( '{{profile}}', name ) );
 
-			if ( ! answer ) {
+			if ( !answer ) {
 				return;
 			}
 
@@ -3240,7 +3033,7 @@ module.exports = MigrationProgressStageView;
 		$( 'body' ).on( 'click', '.temp-disabled', function() {
 			var answer = confirm( wpmdb_strings.change_connection_info );
 
-			if ( ! answer ) {
+			if ( !answer ) {
 				return;
 			} else {
 				$( '.ssl-notice' ).hide();
@@ -3358,12 +3151,12 @@ module.exports = MigrationProgressStageView;
 				error_message = wpmdb_strings.connection_info_missing;
 			}
 
-			if ( 2 !== connection_info.length && ! error ) {
+			if ( 2 !== connection_info.length && !error ) {
 				error = true;
 				error_message = wpmdb_strings.connection_info_incorrect;
 			}
 
-			if ( ! error && ! validate_url( connection_info[ 0 ] ) ) {
+			if ( !error && !validate_url( connection_info[ 0 ] ) ) {
 				error = true;
 				error_message = wpmdb_strings.connection_info_url_invalid;
 			}
@@ -3379,12 +3172,12 @@ module.exports = MigrationProgressStageView;
 				error_message = wpmdb_strings.connection_info_key_invalid;
 			}
 
-			if ( ! error && connection_info[ 0 ] === wpmdb_data.connection_info[ 0 ] ) {
+			if ( !error && connection_info[ 0 ] === wpmdb_data.connection_info[ 0 ] ) {
 				error = true;
 				error_message = wpmdb_strings.connection_info_local_url;
 			}
 
-			if ( ! error && connection_info[ 1 ] === wpmdb_data.connection_info[ 1 ] ) {
+			if ( !error && connection_info[ 1 ] === wpmdb_data.connection_info[ 1 ] ) {
 				error = true;
 				error_message = wpmdb_strings.connection_info_local_key;
 			}
@@ -3570,11 +3363,6 @@ module.exports = MigrationProgressStageView;
 			cancel_migration( event );
 		} );
 
-		$( '.enter-licence' ).click( function() {
-			$( '.settings' ).click();
-			$( '.licence-input' ).focus();
-		} );
-
 		wpmdb.functions.execute_next_step = function() {
 
 			// if delay is set, set a timeout for delay to recall this function, then return
@@ -3677,97 +3465,6 @@ module.exports = MigrationProgressStageView;
 				wpmdb.common.next_step_in_migration.fn.apply( null, wpmdb.common.next_step_in_migration.args );
 			}
 		};
-
-		$( 'body' ).on( 'click', '.copy-licence-to-remote-site', function() {
-			$( '.connection-status' ).html( wpmdb_strings.copying_license );
-			$( '.connection-status' ).removeClass( 'notification-message error-notice migration-error' );
-			$( '.connection-status' ).append( ajax_spinner );
-
-			var connection_info = $.trim( $( '.pull-push-connection-info' ).val() ).split( '\n' );
-
-			doing_ajax = true;
-			disable_export_type_controls();
-
-			$.ajax( {
-				url: ajaxurl,
-				type: 'POST',
-				dataType: 'json',
-				cache: false,
-				data: {
-					action: 'wpmdb_copy_licence_to_remote_site',
-					url: connection_info[ 0 ],
-					key: connection_info[ 1 ],
-					nonce: wpmdb_data.nonces.copy_licence_to_remote_site
-				},
-				error: function( jqXHR, textStatus, errorThrown ) {
-					$( '.connection-status' ).html( get_ajax_errors( jqXHR.responseText, '(#143)', jqXHR ) );
-					$( '.connection-status' ).addClass( 'notification-message error-notice migration-error' );
-					$( '.ajax-spinner' ).remove();
-					doing_ajax = false;
-					enable_export_type_controls();
-				},
-				success: function( data ) {
-					$( '.ajax-spinner' ).remove();
-					doing_ajax = false;
-					enable_export_type_controls();
-
-					if ( 'undefined' !== typeof data.wpmdb_error && 1 === data.wpmdb_error ) {
-						$( '.connection-status' ).html( data.body );
-						$( '.connection-status' ).addClass( 'notification-message error-notice migration-error' );
-
-						if ( data.body.indexOf( '401 Unauthorized' ) > -1 ) {
-							$( '.basic-access-auth-wrapper' ).show();
-						}
-
-						return;
-					}
-					connection_box_changed();
-				}
-			} );
-		} );
-
-		$( 'body' ).on( 'click', '.reactivate-licence', function( e ) {
-			doing_ajax = true;
-
-			$( '.invalid-licence' ).empty().html( wpmdb_strings.attempting_to_activate_licence );
-			$( '.invalid-licence' ).append( ajax_spinner );
-
-			$.ajax( {
-				url: ajaxurl,
-				type: 'POST',
-				dataType: 'json',
-				cache: false,
-				data: {
-					action: 'wpmdb_reactivate_licence',
-					nonce: wpmdb_data.nonces.reactivate_licence
-				},
-				error: function( jqXHR, textStatus, errorThrown ) {
-					$( '.invalid-licence' ).html( wpmdb_strings.activate_licence_problem );
-					$( '.invalid-licence' ).append( '<br /><br />' + wpmdb_strings.status + ': ' + jqXHR.status + ' ' + jqXHR.statusText + '<br /><br />' + wpmdb_strings.response + '<br />' + jqXHR.responseText );
-					$( '.ajax-spinner' ).remove();
-					doing_ajax = false;
-				},
-				success: function( data ) {
-					$( '.ajax-spinner' ).remove();
-					doing_ajax = false;
-
-					if ( 'undefined' !== typeof data.wpmdb_error && 1 === data.wpmdb_error ) {
-						$( '.invalid-licence' ).html( data.body );
-						return;
-					}
-
-					if ( 'undefined' !== typeof data.wpmdb_dbrains_api_down && 1 === data.wpmdb_dbrains_api_down ) {
-						$( '.invalid-licence' ).html( wpmdb_strings.temporarily_activated_licence );
-						$( '.invalid-licence' ).append( data.body );
-						return;
-					}
-
-					$( '.invalid-licence' ).empty().html( wpmdb_strings.licence_reactivated );
-					location.reload();
-				}
-			} );
-
-		} );
 
 		$( 'input[name=table_migrate_option]' ).change( function() {
 			maybe_show_mixed_cased_table_name_warning();

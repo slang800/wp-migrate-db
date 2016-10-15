@@ -33,7 +33,7 @@ function wpmdb_migration_type() {
 	var action = jQuery( 'input[name=action]:checked' );
 	if ( 0 === action.length ) {
 		return '';
-	}
+}
 	return action.val();
 }
 

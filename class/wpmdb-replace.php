@@ -135,7 +135,7 @@ final class WPMDB_Replace {
 
 		// some unserialized data cannot be re-serialized eg. SimpleXMLElements
 		try {
-			if ( is_string( $data ) && ( $unserialized = WPMDB_Utils::unserialize( $data, __METHOD__ ) ) !== false ) {
+			if ( is_string( $data ) && ( $unserialized = @unserialize( $data ) ) !== false ) {
 				// PHP currently has a bug that doesn't allow you to clone the DateInterval / DatePeriod classes.
 				// We skip them here as they probably won't need data to be replaced anyway
 				if ( is_object( $unserialized ) ) {

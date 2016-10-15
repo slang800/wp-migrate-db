@@ -1222,7 +1222,7 @@ class WPMDB extends WPMDB_Base {
 	function options_page() {
 		$this->template( 'options' );
 	}
-	
+
 	/**
 	 * Load Tools HTML template for tools menu on sites in a Network to help users find WPMDB in Multisite
 	 *
@@ -2199,7 +2199,7 @@ class WPMDB extends WPMDB_Base {
 	}
 
 	function network_admin_menu() {
-		$title       = ( $this->is_pro ) ? __( 'Migrate DB Pro', 'wp-migrate-db' ) : __( 'Migrate DB', 'wp-migrate-db' );
+		$title       = __( 'Migrate DB Pro', 'wp-migrate-db' );
 		$hook_suffix = add_submenu_page( 'settings.php',
 			$title,
 			$title,
@@ -2208,23 +2208,23 @@ class WPMDB extends WPMDB_Base {
 			array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
-	
+
 	/**
 	 * Add a tools menu item to sites on a Multisite network
 	 *
 	 */
 	function network_tools_admin_menu() {
-		add_management_page( 
+		add_management_page(
 			$this->get_plugin_title(),
 			$this->get_plugin_title(),
 			'manage_network_options',
 			$this->core_slug,
-			array( $this, 'subsite_tools_options_page' ) 
+			array( $this, 'subsite_tools_options_page' )
 		);
 	}
 
 	function admin_menu() {
-		$title       = ( $this->is_pro ) ? __( 'Migrate DB Pro', 'wp-migrate-db' ) : __( 'Migrate DB', 'wp-migrate-db' );
+		$title       = __( 'Migrate DB Pro', 'wp-migrate-db' );
 		$hook_suffix = add_management_page( $title,
 			$title,
 			'export',
@@ -2236,12 +2236,6 @@ class WPMDB extends WPMDB_Base {
 	function after_admin_menu( $hook_suffix ) {
 		add_action( 'admin_head-' . $hook_suffix, array( $this, 'admin_head_connection_info' ) );
 		add_action( 'load-' . $hook_suffix, array( $this, 'load_assets' ) );
-
-		// Remove licence from the database if constant is set
-		if ( $this->is_licence_constant() && ! empty( $this->settings['licence'] ) ) {
-			$this->settings['licence'] = '';
-			update_site_option( 'wpmdb_settings', $this->settings );
-		}
 	}
 
 	function admin_body_class( $classes ) {
@@ -2251,10 +2245,7 @@ class WPMDB extends WPMDB_Base {
 			$classes = explode( ' ', $classes );
 		}
 
-		$version_class = 'wpmdb-not-pro';
-		if ( true == $this->is_pro ) {
-			$version_class = 'wpmdb-pro';
-		}
+		$version_class = 'wpmdb-pro';
 
 		$classes[] = $version_class;
 
@@ -2306,26 +2297,6 @@ class WPMDB extends WPMDB_Base {
 	}
 
 	/**
-	 * Check for wpmdb-remove-licence and related nonce
-	 * if found cleanup routines related to licenced product
-	 *
-	 * @return void
-	 */
-	function http_remove_license() {
-		if ( isset( $_GET['wpmdb-remove-licence'] ) && wp_verify_nonce( $_GET['nonce'], 'wpmdb-remove-licence' ) ) {
-			$this->settings['licence'] = '';
-			update_site_option( 'wpmdb_settings', $this->settings );
-			// delete these transients as they contain information only valid for authenticated licence holders
-			delete_site_transient( 'update_plugins' );
-			delete_site_transient( 'wpmdb_upgrade_data' );
-			delete_site_transient( 'wpmdb_licence_response' );
-			// redirecting here because we don't want to keep the query string in the web browsers address bar
-			wp_redirect( network_admin_url( $this->plugin_base . '#settings' ) );
-			exit;
-		}
-	}
-
-	/**
 	 * Check for wpmdb-disable-ssl and related nonce
 	 * if found temporaily disable ssl via transient
 	 *
@@ -2335,25 +2306,6 @@ class WPMDB extends WPMDB_Base {
 		if ( isset( $_GET['wpmdb-disable-ssl'] ) && wp_verify_nonce( $_GET['nonce'], 'wpmdb-disable-ssl' ) ) {
 			set_site_transient( 'wpmdb_temporarily_disable_ssl', '1', 60 * 60 * 24 * 30 ); // 30 days
 			$hash = ( isset( $_GET['hash'] ) ) ? '#' . sanitize_title( $_GET['hash'] ) : '';
-			// delete the licence transient as we want to attempt to fetch the licence details again
-			delete_site_transient( 'wpmdb_licence_response' );
-			// redirecting here because we don't want to keep the query string in the web browsers address bar
-			wp_redirect( network_admin_url( $this->plugin_base . $hash ) );
-			exit;
-		}
-	}
-
-	/**
-	 * Check for wpmdb-check-licence and related nonce
-	 * if found refresh licence details
-	 *
-	 * @return void
-	 */
-	function http_refresh_licence() {
-		if ( isset( $_GET['wpmdb-check-licence'] ) && wp_verify_nonce( $_GET['nonce'], 'wpmdb-check-licence' ) ) {
-			$hash = ( isset( $_GET['hash'] ) ) ? '#' . sanitize_title( $_GET['hash'] ) : '';
-			// delete the licence transient as we want to attempt to fetch the licence details again
-			delete_site_transient( 'wpmdb_licence_response' );
 			// redirecting here because we don't want to keep the query string in the web browsers address bar
 			wp_redirect( network_admin_url( $this->plugin_base . $hash ) );
 			exit;
@@ -2369,9 +2321,7 @@ class WPMDB extends WPMDB_Base {
 	function load_assets() {
 		$this->http_verify_download();
 		$this->http_prepare_download_log();
-		$this->http_remove_license();
 		$this->http_disable_ssl();
-		$this->http_refresh_licence();
 
 		// add our custom CSS classes to <body>
 		add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
@@ -2380,6 +2330,7 @@ class WPMDB extends WPMDB_Base {
 		$version     = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : $this->plugin_version;
 		$ver_string  = '-' . str_replace( '.', '', $this->plugin_version );
 		$min         = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$min         = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '';
 
 		$src = $plugins_url . 'asset/dist/css/styles.css';
 		wp_enqueue_style( 'wp-migrate-db-pro-styles', $src, array(), $version );
@@ -2402,13 +2353,8 @@ class WPMDB extends WPMDB_Base {
 			'wpmdb_strings',
 			array(
 				'max_request_size_problem'              => __( 'A problem occurred when trying to change the maximum request size, please try again.', 'wp-migrate-db' ),
-				'license_check_problem'                 => __( 'A problem occurred when trying to check the license, please try again.', 'wp-migrate-db' ),
 				'establishing_remote_connection'        => __( 'Establishing connection to remote server, please wait', 'wp-migrate-db' ),
 				'connection_local_server_problem'       => __( 'A problem occurred when attempting to connect to the local server, please check the details and try again.', 'wp-migrate-db' ),
-				'enter_license_key'                     => __( 'Please enter your license key.', 'wp-migrate-db' ),
-				'register_license_problem'              => __( 'A problem occurred when trying to register the license, please try again.', 'wp-migrate-db' ),
-				'license_registered'                    => __( 'Your license has been activated. You will now receive automatic updates and access to email support.', 'wp-migrate-db' ),
-				'fetching_license'                      => __( 'Fetching license details, please wait…', 'wp-migrate-db' ),
 				'clear_log_problem'                     => __( 'An error occurred when trying to clear the debug log. Please contact support. (#132)', 'wp-migrate-db' ),
 				'update_log_problem'                    => __( 'An error occurred when trying to update the debug log. Please contact support. (#133)', 'wp-migrate-db' ),
 				'please_select_one_table'               => __( 'Please select at least one table to migrate.', 'wp-migrate-db' ),
@@ -2443,7 +2389,7 @@ class WPMDB extends WPMDB_Base {
 				'connection_info_missing'               => __( 'The connection information appears to be missing, please enter it to continue.', 'wp-migrate-db' ),
 				'connection_info_incorrect'             => __( "The connection information appears to be incorrect, it should consist of two lines. The first being the remote server's URL and the second being the secret key.", 'wp-migrate-db' ),
 				'connection_info_url_invalid'           => __( 'The URL on the first line appears to be invalid, please check it and try again.', 'wp-migrate-db' ),
-				'connection_info_key_invalid'           => __( 'The secret key on the second line appears to be invalid. It should be a 40 character string that consists of letters, numbers and special characters only.', 'wp-migrate-db' ),
+				'connection_info_key_invalid'           => __( 'The secret key on the second line appears to be invalid. It should be a 32 character string that consists of letters, numbers and special characters only.', 'wp-migrate-db' ),
 				'connection_info_local_url'             => __( "It appears you've entered the URL for this website, you need to provide the URL of the remote website instead.", 'wp-migrate-db' ),
 				'connection_info_local_key'             => __( 'Looks like your remote secret key is the same as the secret key for this site. To fix this, go to the <a href="#settings">Settings tab</a> and click "Reset Secret Key"', 'wp-migrate-db' ),
 				'time_elapsed'                          => __( 'Time Elapsed:', 'wp-migrate-db' ),
@@ -2474,11 +2420,6 @@ class WPMDB extends WPMDB_Base {
 				'pull_migration_label_completed'        => __( 'Pull from %s complete', 'wp-migrate-db' ),
 				'push_migration_label_migrating'        => __( 'Pushing to %s…', 'wp-migrate-db' ),
 				'push_migration_label_completed'        => __( 'Push to %s complete', 'wp-migrate-db' ),
-				'copying_license'                       => __( 'Copying license to the remote site, please wait', 'wp-migrate-db' ),
-				'attempting_to_activate_licence'        => __( 'Attempting to activate your license, please wait…', 'wp-migrate-db' ),
-				'licence_reactivated'                   => __( 'License successfully activated, please wait…', 'wp-migrate-db' ),
-				'activate_licence_problem'              => __( 'An error occurred when trying to reactivate your license. Please provide the following information when requesting support:', 'wp-migrate-db' ),
-				'temporarily_activated_licence'         => __( "<strong>We've temporarily activated your licence and will complete the activation once the Delicious Brains API is available again.</strong><br />Please refresh this page to continue.", 'wp-migrate-db' ),
 				'ajax_json_message'                     => __( 'JSON Decoding Failure', 'wp-migrate-db' ),
 				'ajax_json_errors'                      => __( 'Our AJAX request was expecting JSON but we received something else. Often this is caused by your theme and/or plugins spitting out PHP errors. If you can edit the theme or plugins causing the errors, you should be able to fix them up, but if not, you can set WP_DEBUG to false in wp-config.php to disable errors from showing up.', 'wp-migrate-db' ),
 				'view_error_messages'                   => __( 'View error messages', 'wp-migrate-db' ),
@@ -2498,7 +2439,6 @@ class WPMDB extends WPMDB_Base {
 				'hide'                                  => _x( 'Hide', 'Obscure from view', 'wp-migrate-db' ),
 				'show'                                  => _x( 'Show', 'Reveal', 'wp-migrate-db' ),
 				'welcome_title'                         => __( 'Welcome to WP Migrate DB Pro! &#127881;', 'wp-migrate-db' ),
-				'welcome_text'                          => __( 'Hey, this is the first time activating your license, nice! Your migrations are about to get awesome! If you haven’t already, you should check out our <a href="%1$s">Quick Start Guide</a> and <a href="%2$s">Videos</a>. If you run into any trouble at all, use the <strong>Help tab</strong> above to submit a support request.', 'wp-migrate-db' ),
 				'title_progress'                        => __( '%1$s Stage %2$s of %3$s', 'wp-migrate-db' ),
 				'title_paused'                          => __( 'Paused', 'wp-migrate-db' ),
 				'title_cancelling'                      => __( 'Cancelling', 'wp-migrate-db' ),
@@ -2557,9 +2497,7 @@ class WPMDB extends WPMDB_Base {
 		$nonces = apply_filters( 'wpmdb_nonces', array(
 			'update_max_request_size'          => wp_create_nonce( 'update-max-request-size' ),
 			'update_delay_between_requests'    => wp_create_nonce( 'update-delay-between-requests' ),
-			'check_licence'                    => wp_create_nonce( 'check-licence' ),
 			'verify_connection_to_remote_site' => wp_create_nonce( 'verify-connection-to-remote-site' ),
-			'activate_licence'                 => wp_create_nonce( 'activate-licence' ),
 			'clear_log'                        => wp_create_nonce( 'clear-log' ),
 			'get_log'                          => wp_create_nonce( 'get-log' ),
 			'save_profile'                     => wp_create_nonce( 'save-profile' ),
@@ -2569,8 +2507,6 @@ class WPMDB extends WPMDB_Base {
 			'reset_api_key'                    => wp_create_nonce( 'reset-api-key' ),
 			'delete_migration_profile'         => wp_create_nonce( 'delete-migration-profile' ),
 			'save_setting'                     => wp_create_nonce( 'save-setting' ),
-			'copy_licence_to_remote_site'      => wp_create_nonce( 'copy-licence-to-remote-site' ),
-			'reactivate_licence'               => wp_create_nonce( 'reactivate-licence' ),
 			'process_notice_link'              => wp_create_nonce( 'process-notice-link' ),
 			'flush'                            => wp_create_nonce( 'flush' ),
 			'plugin_compatibility'             => wp_create_nonce( 'plugin_compatibility' ),
@@ -2604,13 +2540,10 @@ class WPMDB extends WPMDB_Base {
 			'prog_tables_hidden'     => ( bool ) $this->settings['prog_tables_hidden'],
 			'pause_before_finalize'  => ( bool ) $this->settings['pause_before_finalize'],
 			'bottleneck'             => esc_html( $this->get_bottleneck( 'max' ) ),
-			'has_licence'            => esc_html( $this->get_licence_key() == '' ? '0' : '1' ),
 			// TODO: Use WP_Filesystem API.
 			'write_permission'       => esc_html( is_writeable( $this->get_upload_info( 'path' ) ) ? 'true' : 'false' ),
 			'nonces'                 => $nonces,
-			'valid_licence'          => ( $this->is_valid_licence() ) ? '1' : '0',
 			'profile'                => isset( $_GET['wpmdb-profile'] ) ? $_GET['wpmdb-profile'] : '-1',
-			'is_pro'                 => esc_html( ( $this->is_pro ) ? 'true' : 'false' ),
 			'lower_case_table_names' => esc_html( $this->get_lower_case_table_names_setting() ),
 			'subsites'               => $site_details['subsites'], // TODO: Remove backwards compatibility.
 			'site_details'           => $this->site_details(),
@@ -2898,7 +2831,7 @@ class WPMDB extends WPMDB_Base {
 			}
 
 			if ( true === $abort_utf8mb4 && 0 !== $replace_count ) {
-				$return = sprintf( __( 'The source site supports utf8mb4 data but the target does not, aborting migration to avoid possible data corruption. Please see %1$s for more information. (#148)', 'wp-migrate-db-pro' ), sprintf( '<a href="https://deliciousbrains.com/wp-migrate-db-pro/doc/source-site-supports-utf8mb4/">%1$s</a>', __( 'our documentation', 'wp-migrate-db-pro' ) ) );
+				$return = sprintf( __( 'The source site supports utf8mb4 data but the target does not, aborting migration to avoid possible data corruption. Please see %1$s for more information. (#148)', 'wp-migrate-db-pro' ), sprintf( '<a href="">%1$s</a>', __( 'our documentation', 'wp-migrate-db-pro' ) ) );
 				$return = array( 'wpmdb_error' => 1, 'body' => $return );
 				$result = $this->end_ajax( json_encode( $return ) );
 
