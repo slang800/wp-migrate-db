@@ -66,9 +66,8 @@ $breadcrumbs_params = array(
 
 		<ul class="option-group migrate-selection">
 			<li>
-				<?php $savefile_style = ( true == $this->is_pro ) ? '' : ' style="display: none;"'; ?>
-				<label for="savefile"<?php echo $savefile_style; ?>>
-					<input id="savefile" type="radio" value="savefile" name="action"<?php echo ( $loaded_profile['action'] == 'savefile' || ! $this->is_pro ) ? ' checked="checked"' : ''; ?> />
+				<label for="savefile">
+					<input id="savefile" type="radio" value="savefile" name="action"<?php echo ( $loaded_profile['action'] == 'savefile' ) ? ' checked="checked"' : ''; ?> />
 					<?php _e( 'Export File', 'wp-migrate-db' ); ?>
 				</label>
 				<ul>
@@ -105,9 +104,6 @@ $breadcrumbs_params = array(
 		<div class="notification-message warning-notice ssl-notice inline-message">
 			<strong><?php _e( 'SSL Disabled', 'wp-migrate-db' ); ?></strong> &mdash; <?php _e( 'We couldn\'t connect over SSL but regular http (no SSL) appears to be working so we\'ve switched to that. If you run a push or pull, your data will be transmitted unencrypted. Most people are fine with this, but just a heads up.', 'wp-migrate-db' ); ?>
 		</div>
-
-		<?php $this->template_part( array( 'invalid_licence_warning' ) ); ?>
-
 	</div>
 
 	<p class="connection-status"><?php _e( 'Please enter the connection information above to continue.', 'wp-migrate-db' ); ?></p>
@@ -219,8 +215,8 @@ $breadcrumbs_params = array(
 				$new_url_missing_warning = __( '<strong>New URL Missing</strong> &mdash; Please enter the protocol-relative URL of the remote website in the "New URL" field. If you are unsure of what this URL should be, please consult <a href="%s" target="_blank">our documentation</a> on find and replace fields.', 'wp-migrate-db' );
 			}
 			?>
-			<div id="new-url-missing-warning" class="warning inline-message missing-replace"><?php printf( $new_url_missing_warning, 'https://deliciousbrains.com/wp-migrate-db-pro/doc/find-and-replace/' ); ?></div>
-			<div id="new-path-missing-warning" class="warning inline-message missing-replace"><?php printf( __( '<strong>New File Path Missing</strong> &mdash; Please enter the root file path of the remote website in the "New file path" field or remove the whole row entirely. If you are unsure of what the file path should be, please consult <a href="%s" target="_blank">our documentation</a> on find and replace fields.', 'wp-migrate-db' ), 'https://deliciousbrains.com/wp-migrate-db-pro/doc/find-and-replace/' ); ?></div>
+			<div id="new-url-missing-warning" class="warning inline-message missing-replace">!!!</div>
+			<div id="new-path-missing-warning" class="warning inline-message missing-replace">!!!</div>
 
 		</div>
 

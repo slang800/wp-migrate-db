@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: WP Migrate DB Pro Compatibility
-Plugin URI: http://deliciousbrains.com/wp-migrate-db-pro/
+Plugin URI: 
 Description: Prevents 3rd party plugins from being loaded during WP Migrate DB Pro specific operations
 Author: Delicious Brains
 Version: 1.1
-Author URI: http://deliciousbrains.com
+Author URI:
 */
 
 $GLOBALS['wpmdb_compatibility'] = true;

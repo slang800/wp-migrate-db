@@ -61,7 +61,7 @@ class WPMDB_Utils {
 			}
 		}
 	}
-	
+
 	/**
 	 * Return unserialized object or array
 	 *
