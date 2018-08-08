@@ -187,19 +187,19 @@ class WPSDB extends WPSDB_Base {
 	function ajax_plugin_compatibility() {
 		$mu_dir = ( defined( 'WPMU_PLUGIN_DIR' ) && defined( 'WPMU_PLUGIN_URL' ) ) ? WPMU_PLUGIN_DIR : trailingslashit( WP_CONTENT_DIR ) . 'mu-plugins';
 		$source = trailingslashit( $this->plugin_dir_path ) . 'compatibility/wp-sync-db-compatibility.php';
-		$dest = trailingslashit( $mu_dir ) . 'wp-sync-db-compatibility.php';
+    $destination = trailingslashit( $mu_dir ) . 'wp-sync-db-compatibility.php';
 		if ( '1' === trim( $_POST['install'] ) ) { // install MU plugin
 			if ( !wp_mkdir_p( $mu_dir ) ) {
 				_e( sprintf( 'The following directory could not be created: %s', $mu_dir ), 'wp-sync-db' );
 				exit;
 			}
-			if ( !copy( $source, $dest ) ) {
+			if ( !copy( $source, $destination ) ) {
 				_e( sprintf( 'Could not copy the compatibility plugin from %1$s to %2$s', $source, $destination ), 'wp-sync-db' );
 				exit;
 			}
 		} else { // uninstall MU plugin
-			if ( file_exists( $dest ) && !unlink( $dest ) ) {
-				_e( sprintf( 'Could not remove the compatibility plugin from %s', $dest ), 'wp-sync-db' );
+			if ( file_exists( $destination ) && !unlink( $destination ) ) {
+				_e( sprintf( 'Could not remove the compatibility plugin from %s', $destination ), 'wp-sync-db' );
 				exit;
 			}
 		}
@@ -499,7 +499,7 @@ class WPSDB extends WPSDB_Base {
 		}
 		else {
 			do_action( 'wpsdb_migration_complete', 'push', $_POST['url'] );
-			$data = $_POST;
+			$data = $this->get_post_data_filtered();
 			if ( isset( $data['nonce'] ) ) {
 				unset( $data['nonce'] );
 			}
@@ -686,7 +686,7 @@ class WPSDB extends WPSDB_Base {
 		if ( $_POST['stage'] == 'backup' && $_POST['intent'] != 'savefile' ) {
 			// if performing a push we need to backup the REMOTE machine's DB
 			if ( $_POST['intent'] == 'push' ) {
-				$data = $_POST;
+				$data = $this->get_post_data_filtered();
 				if ( isset( $data['nonce'] ) ) {
 					unset( $data['nonce'] );
 				}
@@ -738,7 +738,7 @@ class WPSDB extends WPSDB_Base {
 			return $result;
 		}
 		else {
-			$data = $_POST;
+			$data = $this->get_post_data_filtered();
 			if ( isset( $data['nonce'] ) ) {
 				unset( $data['nonce'] );
 			}
@@ -752,6 +752,7 @@ class WPSDB extends WPSDB_Base {
 			if ( isset( $data['sig'] ) ) {
 				unset( $data['sig'] );
 			}
+
 			$ajax_url = trailingslashit( $data['url'] ) . 'wp-admin/admin-ajax.php';
 			$data['primary_keys'] = stripslashes( $data['primary_keys'] );
 			$data['sig'] = $this->create_signature( $data, $data['key'] );
@@ -1346,7 +1347,8 @@ class WPSDB extends WPSDB_Base {
 			}
 
 			$hide_warning = apply_filters( 'wpsdb_hide_safe_mode_warning', false );
-			if ( function_exists( 'ini_get' ) && ini_get( 'safe_mode' ) && !$hide_warning ) { ?>
+      $safe_mode = false;
+			if ( function_exists( 'ini_get' ) && $safe_mode = ini_get( 'safe_mode' ) && !$hide_warning ) { ?>
 				<div class="updated warning inline-message">
 					<?php
 					_e( "<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can't extend the run time of the script and ensure it doesn't time out before the migration completes. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. However, if you have trouble, we can't help you until you turn off safe mode.", 'wp-sync-db' );
@@ -2442,7 +2444,7 @@ class WPSDB extends WPSDB_Base {
 			break;
 
 			case 'push' :
-				$data = $_POST;
+				$data = $this->get_post_data_filtered();
 				$data['action'] = 'wpsdb_process_push_migration_cancellation';
 				$data['temp_prefix'] = $this->temp_prefix;
 				$ajax_url = trailingslashit( $data['url'] ) . 'wp-admin/admin-ajax.php';
@@ -2519,5 +2521,21 @@ class WPSDB extends WPSDB_Base {
 	function empty_current_chunk() {
 		$this->current_chunk = '';
 	}
+
+  /**
+   * Filter POST data to avoid signature verification error
+   *
+   * @return array POST data filtered
+   */
+  function get_post_data_filtered() {
+    $data = $_POST;
+
+    // Fix polylang pluing injection in POST data, which breaks the signature verification
+    if ( isset( $data['pll_ajax_backend'] ) ) {
+      unset( $data['pll_ajax_backend'] );
+    }
+
+    return $data;
+  }
 
 }
