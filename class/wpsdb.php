@@ -349,97 +349,97 @@ class WPSDB extends WPSDB_Base {
 		echo home_url();
 		echo "\r\n";
 
-		echo 'Table Prefix: ';
+		echo __( 'Table Prefix: ', 'wp-sync-db' );
 		echo $table_prefix;
 		echo "\r\n";
 
-		echo 'WordPress: ';
+		echo __( 'WordPress: ', 'wp-sync-db' );
 		if ( is_multisite() ) echo 'WPMU'; else echo 'WP'; echo bloginfo('version');
 		echo "\r\n";
 
-		echo 'Web Server: ';
+		echo __( 'Web Server: ', 'wp-sync-db' );
 		echo $_SERVER['SERVER_SOFTWARE'];
 		echo "\r\n";
 
-		echo 'PHP: ';
+		echo __( 'PHP: ', 'wp-sync-db' );
 		if ( function_exists( 'phpversion' ) ) echo esc_html( phpversion() );
 		echo "\r\n";
 
-		echo 'MySQL: ';
+		echo __( 'MySQL: ', 'wp-sync-db' );
 		echo esc_html( empty( $wpdb->use_mysqli ) ? mysql_get_server_info() : mysqli_get_server_info( $wpdb->dbh ) );
 		echo "\r\n";
 
-		_e( 'ext/mysqli', 'wp-app-store' ); echo ': ';
+		echo __( 'ext/mysqli: ', 'wp-sync-db' );
 		echo empty( $wpdb->use_mysqli ) ? 'no' : 'yes';
 		echo "\r\n";
 
-		_e( 'WP Memory Limit', 'wp-app-store' ); echo ': ';
+		echo __( 'WP Memory Limit: ', 'wp-sync-db' );
 		echo WP_MEMORY_LIMIT;
 		echo "\r\n";
 
-		echo 'WPSDB Bottleneck: ';
+		echo __( 'WPSDB Bottleneck: ', 'wp-sync-db' );
 		echo size_format( $this->get_bottleneck() );
 		echo "\r\n";
 
 		if ( function_exists( 'ini_get' ) && $suhosin_limit = ini_get( 'suhosin.post.max_value_length' ) ) {
-			echo 'Suhosin Post Max Value Length: ';
+			echo __( 'Suhosin Post Max Value Length: ', 'wp-sync-db' );
 			echo is_numeric( $suhosin_limit ) ? size_format( $suhosin_limit ) : $suhosin_limit;
 			echo "\r\n";
 		}
 
 		if ( function_exists( 'ini_get' ) && $suhosin_limit = ini_get( 'suhosin.request.max_value_length' ) ) {
-			echo 'Suhosin Request Max Value Length: ';
+			echo __( 'Suhosin Request Max Value Length: ', 'wp-sync-db' );
 			echo is_numeric( $suhosin_limit ) ? size_format( $suhosin_limit ) : $suhosin_limit;
 			echo "\r\n";
 		}
 
-		echo 'Debug Mode: ';
-		if ( defined('WP_DEBUG') && WP_DEBUG ) { echo 'Yes'; } else { echo 'No'; }
+		echo __( 'Debug Mode: ', 'wp-sync-db' );
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) { echo __( 'Yes', 'wp-sync-db' ); } else { echo __( 'No', 'wp-sync-db' ); }
 		echo "\r\n";
 
-		echo 'WP Max Upload Size: ';
+		echo __( 'WP Max Upload Size: ', 'wp-sync-db' );
 		echo size_format( wp_max_upload_size() );
 		echo "\r\n";
 
-		echo 'PHP Post Max Size: ';
+		echo __( 'PHP Post Max Size: ', 'wp-sync-db' );
 		echo size_format( $this->get_post_max_size() );
 		echo "\r\n";
 
-		echo 'PHP Time Limit: ';
+		echo __( 'PHP Time Limit: ', 'wp-sync-db' );
 		if ( function_exists( 'ini_get' ) ) echo ini_get('max_execution_time');
 		echo "\r\n";
 
-		echo 'PHP Error Log: ';
+		echo __( 'PHP Error Log: ', 'wp-sync-db' );
 		if ( function_exists( 'ini_get' ) ) echo ini_get('error_log');
 		echo "\r\n";
 
-		echo 'fsockopen: ';
+		echo __( 'fsockopen: ', 'wp-sync-db' );
 		if ( function_exists( 'fsockopen' ) ) {
-			echo 'Enabled';
+			echo __( 'Enabled', 'wp-sync-db' );
 		} else {
-			echo 'Disabled';
+			echo __( 'Disabled', 'wp-sync-db' );
 		}
 		echo "\r\n";
 
-		echo 'OpenSSL: ';
+		echo __( 'OpenSSL: ', 'wp-sync-db' );
 		if ( $this->open_ssl_enabled() ) {
 			echo OPENSSL_VERSION_TEXT;
 
 		} else {
-			echo 'Disabled';
+			echo __( 'Disabled', 'wp-sync-db' );
 		}
 		echo "\r\n";
 
-		echo 'cURL: ';
+		echo __( 'cURL: ', 'wp-sync-db' );
 		if ( function_exists( 'curl_init' ) ) {
-			echo 'Enabled';
+			echo __( 'Enabled', 'wp-sync-db' );
 		} else {
-			echo 'Disabled';
+			echo __( 'Disabled', 'wp-sync-db' );
 		}
 		echo "\r\n";
 		echo "\r\n";
 
-		echo "Active Plugins:\r\n";
+		echo __( 'Active Plugins:\r\n', 'wp-sync-db' );
 
 		$active_plugins = (array) get_option( 'active_plugins', array() );
 
@@ -1318,9 +1318,9 @@ class WPSDB extends WPSDB_Base {
 
 		<div class="wrap wpsdb">
 
-			<div id="icon-tools" class="icon32"><br /></div><h2>Migrate DB</h2>
+			<div id="icon-tools" class="icon32"><br /></div><h2><?php _e( 'Sync DB', 'wp-sync-db' ); ?></h2>
 
-			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab nav-tab-active js-action-link migrate" data-div-name="migrate-tab"><?php _e( 'Migrate', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link settings" data-div-name="settings-tab"><?php _e( 'Settings', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link help" data-div-name="help-tab"><?php _e( 'Help', 'wp-sync-db' ); ?></a></h2>
+			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab nav-tab-active js-action-link migrate" data-div-name="migrate-tab"><?php _e( 'Sync DB', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link settings" data-div-name="settings-tab"><?php _e( 'Settings', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link help" data-div-name="help-tab"><?php _e( 'Help', 'wp-sync-db' ); ?></a></h2>
 
 			<?php do_action( 'wpsdb_notices' ); ?>
 
@@ -1339,7 +1339,7 @@ class WPSDB extends WPSDB_Base {
 				}
 				?>
 				<div class="updated warning inline-message">
-					<strong>Update Required</strong> &mdash;
+					<strong><?php _e( 'Update Required', 'wp-sync-db' ); ?></strong> &mdash;
 					<?php printf( __( 'The version of the %1$s addon you have installed%2$s is out-of-date and will not work with this version WP Sync DB. <a href="%3$s">Update Now</a>', 'wp-sync-db' ), $addon['name'], $version, $update_url ); ?>
 				</div>
 			<?php
@@ -1349,7 +1349,7 @@ class WPSDB extends WPSDB_Base {
 			if ( function_exists( 'ini_get' ) && ini_get( 'safe_mode' ) && !$hide_warning ) { ?>
 				<div class="updated warning inline-message">
 					<?php
-					_e( "<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can't extend the run time of the script and ensure it doesn't time out before the migration completes. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. However, if you have trouble, we can't help you until you turn off safe mode.", 'wp-sync-db' );
+					_e( '<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can\'t extend the run time of the script and ensure it doesn\'t time out before the migration completes. We haven\'t disabled the plugin however, so you\'re free to cross your fingers and hope for the best. However, if you have trouble, we can\'t help you until you turn off safe mode.', 'wp-sync-db' );
 					if ( function_exists( 'ini_get' ) ) {
 						printf( __( 'Your current PHP run time limit is set to %s seconds.', 'wp-sync-db' ), ini_get( 'max_execution_time' ) );
 					} ?>
@@ -1359,7 +1359,7 @@ class WPSDB extends WPSDB_Base {
 			?>
 
 			<div class="updated warning ie-warning inline-message" style="display: none;">
-				<?php _e( "<strong>Internet Explorer Not Supported</strong> &mdash; Less than 2% of our customers use IE, so we've decided not to spend time supporting it. We ask that you use Firefox or a Webkit-based browser like Chrome or Safari instead. If this is a problem for you, please let us know.", 'wp-sync-db' ); ?>
+				<?php _e( '<strong>Internet Explorer Not Supported</strong> &mdash; Less than 2% of our customers use IE, so we\'ve decided not to spend time supporting it. We ask that you use Firefox or a Webkit-based browser like Chrome or Safari instead. If this is a problem for you, please let us know.', 'wp-sync-db' ); ?>
 			</div>
 
 			<?php
@@ -1368,7 +1368,7 @@ class WPSDB extends WPSDB_Base {
 				?>
 				<div class="updated warning inline-message">
 					<?php
-					_e( "<strong>PHP Function Disabled</strong> &mdash; The <code>set_time_limit()</code> function is currently disabled on your server. We use this function to ensure that the migration doesn't time out. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. You may want to contact your web host to enable this function.", 'wp-sync-db' );
+					_e( '<strong>PHP Function Disabled</strong> &mdash; The <code>set_time_limit()</code> function is currently disabled on your server. We use this function to ensure that the migration doesn\'t time out. We haven\'t disabled the plugin however, so you\'re free to cross your fingers and hope for the best. You may want to contact your web host to enable this function.', 'wp-sync-db' );
 					if ( function_exists( 'ini_get' ) ) {
 						printf( __( 'Your current PHP run time limit is set to %s seconds.', 'wp-sync-db' ), ini_get( 'max_execution_time' ) );
 					} ?>
@@ -2169,12 +2169,12 @@ class WPSDB extends WPSDB_Base {
 	}
 
 	function network_admin_menu() {
-		$hook_suffix = add_submenu_page( 'settings.php', 'Migrate DB', 'Migrate DB', 'manage_network_options', 'wp-sync-db', array( $this, 'options_page' ) );
+		$hook_suffix = add_submenu_page( 'settings.php', __( 'Sync DB', 'wp-sync-db' ), __( 'Sync DB', 'wp-sync-db' ), 'manage_network_options', 'wp-sync-db', array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
 
 	function admin_menu() {
-		$hook_suffix = add_management_page( 'Migrate DB', 'Migrate DB', 'export', 'wp-sync-db', array( $this, 'options_page' ) );
+		$hook_suffix = add_management_page( __( 'Sync DB', 'wp-sync-db' ), __( 'Sync DB', 'wp-sync-db' ), 'export', 'wp-sync-db', array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
 
@@ -2226,60 +2226,60 @@ class WPSDB extends WPSDB_Base {
 		wp_enqueue_script( 'wp-sync-db-script', $src, array( 'jquery' ), $version, true );
 
 		wp_localize_script( 'wp-sync-db-script', 'wpsdb_i10n', array(
-			'max_request_size_problem'				=> __( "A problem occurred when trying to change the maximum request size, please try again.", 'wp-sync-db' ),
-			'establishing_remote_connection'		=> __( "Establishing connection to remote server, please wait", 'wp-sync-db' ),
-			'connection_local_server_problem'		=> __( "A problem occurred when attempting to connect to the local server, please check the details and try again.", 'wp-sync-db' ),
-			'clear_log_problem'						=> __( "An error occurred when trying to clear the debug log. Please contact support. (#132)", 'wp-sync-db' ),
-			'update_log_problem'					=> __( "An error occurred when trying to update the debug log. Please contact support. (#133)", 'wp-sync-db' ),
-			'migrate_db_save'						=> __( "Migrate DB & Save", 'wp-sync-db' ),
-			'migrate_db'							=> __( "Migrate DB", 'wp-sync-db' ),
-			'please_select_one_table'				=> __( "Please select at least one table to migrate.", 'wp-sync-db' ),
-			'enter_name_for_profile'				=> __( "Please enter a name for your migration profile.", 'wp-sync-db' ),
-			'save_profile_problem'					=> __( "An error occurred when attempting to save the migration profile. Please see the Help tab for details on how to request support. (#118)", 'wp-sync-db' ),
-			'exporting_complete'					=> __( "Exporting complete", 'wp-sync-db' ),
-			'exporting_please_wait'					=> __( "Exporting, please wait...", 'wp-sync-db' ),
-			'please_wait'							=> __( "please wait...", 'wp-sync-db' ),
-			'complete'								=> __( "complete", 'wp-sync-db' ),
-			'migration_failed'						=> __( "Migration failed", 'wp-sync-db' ),
-			'backing_up'							=> __( "Backing up", 'wp-sync-db' ),
-			'migrating'								=> __( "Migrating", 'wp-sync-db' ),
-			'status'								=> __( "Status", 'wp-sync-db' ),
-			'response'								=> __( "Response", 'wp-sync-db' ),
-			'table_process_problem'					=> __( "A problem occurred when attempting to process the following table (#113)", 'wp-sync-db' ),
-			'table_process_problem_empty_response'	=> __( "A problem occurred when processing the following table. We were expecting a response in JSON format but instead received an empty response.", 'wp-sync-db' ),
-			'completed_with_some_errors'			=> __( "Migration completed with some errors", 'wp-sync-db' ),
-			'completed_dump_located_at'				=> __( "Migration complete, your backup is located at:", 'wp-sync-db' ),
-			'finalize_tables_problem'				=> __( "A problem occurred when finalizing the backup. (#132)", 'wp-sync-db' ),
-			'saved'									=> __( "Saved", 'wp-sync-db' ),
-			'reset_api_key'							=> __( "Any sites setup to use the current API key will no longer be able to connect. You will need to update those sites with the newly generated API key. Do you wish to continue?", 'wp-sync-db' ),
-			'reset_api_key_problem'					=> __( "An error occurred when trying to generate the API key. Please see the Help tab for details on how to request support. (#105)", 'wp-sync-db' ),
-			'remove_profile'						=> __( "You are removing the following migration profile. This cannot be undone. Do you wish to continue?", 'wp-sync-db' ),
-			'remove_profile_problem'				=> __( "An error occurred when trying to delete the profile. Please see the Help tab for details on how to request support. (#106)", 'wp-sync-db' ),
-			'remove_profile_not_found'				=> __( "The selected migration profile could not be deleted because it was not found.\nPlease refresh this page to see an accurate list of the currently available migration profiles.", 'wp-sync-db' ),
-			'change_connection_info'				=> __( "If you change the connection details, you will lose any replaces and table selections you have made below. Do you wish to continue?", 'wp-sync-db' ),
-			'enter_connection_info'					=> __( "Please enter the connection information above to continue.", 'wp-sync-db' ),
-			'save_settings_problem'					=> __( "An error occurred when trying to save the settings. Please try again. If the problem persists, please see the Help tab for details on how to request support. (#108)", 'wp-sync-db' ),
-			'connection_info_missing'				=> __( "The connection information appears to be missing, please enter it to continue.", 'wp-sync-db' ),
-			'connection_info_incorrect'				=> __( "The connection information appears to be incorrect, it should consist of two lines. The first being the remote server's URL and the second being the secret key.", 'wp-sync-db' ),
-			'connection_info_url_invalid'			=> __( "The URL on the first line appears to be invalid, please check it and try again.", 'wp-sync-db' ),
-			'connection_info_key_invalid'			=> __( "The secret key on the second line appears to be invalid. It should be a 32 character string that consists of letters, numbers and special characters only.", 'wp-sync-db' ),
-			'connection_info_local_url'				=> __( "It appears you've entered the URL for this website, you need to provide the URL of the remote website instead.", 'wp-sync-db' ),
-			'connection_info_local_key'				=> __( "It appears you've entered the secret key for this website, you need to provide the secret key for the remote website instead.", 'wp-sync-db' ),
-			'time_elapsed'							=> __( "Time Elapsed:", 'wp-sync-db' ),
-			'pause'									=> __( "Pause", 'wp-sync-db' ),
-			'migration_paused'						=> __( "Migration Paused", 'wp-sync-db' ),
-			'resume'								=> __( "Resume", 'wp-sync-db' ),
-			'completing_current_request'			=> __( "Completing current request", 'wp-sync-db' ),
-			'cancelling_migration'					=> __( "Cancelling migration", 'wp-sync-db' ),
-			'paused'								=> __( "Paused", 'wp-sync-db' ),
-			'removing_local_sql'					=> __( "Removing the local MySQL export file", 'wp-sync-db' ),
-			'removing_local_backup'					=> __( "Removing the local backup MySQL export file", 'wp-sync-db' ),
-			'removing_local_temp_tables'			=> __( "Removing the local temporary tables", 'wp-sync-db' ),
-			'removing_remote_sql'					=> __( "Removing the remote backup MySQL export file", 'wp-sync-db' ),
-			'removing_remote_temp_tables'			=> __( "Removing the remote temporary tables", 'wp-sync-db' ),
-			'migration_cancellation_failed'			=> __( "Migration cancellation failed", 'wp-sync-db' ),
-			'manually_remove_temp_files'			=> __( "A problem occurred while cancelling the migration, you may have to manually delete some temporary files / tables.", 'wp-sync-db' ),
-			'migration_cancelled'					=> __( "Migration cancelled", 'wp-sync-db' ),
+			'max_request_size_problem'				=> __( 'A problem occurred when trying to change the maximum request size, please try again.', 'wp-sync-db' ),
+			'establishing_remote_connection'		=> __( 'Establishing connection to remote server, please wait', 'wp-sync-db' ),
+			'connection_local_server_problem'		=> __( 'A problem occurred when attempting to connect to the local server, please check the details and try again.', 'wp-sync-db' ),
+			'clear_log_problem'						=> __( 'An error occurred when trying to clear the debug log. Please contact support. (#132)', 'wp-sync-db' ),
+			'update_log_problem'					=> __( 'An error occurred when trying to update the debug log. Please contact support. (#133)', 'wp-sync-db' ),
+			'migrate_db_save'						=> __( 'Sync DB & Save', 'wp-sync-db' ),
+			'migrate_db'							=> __( 'Sync DB', 'wp-sync-db' ),
+			'please_select_one_table'				=> __( 'Please select at least one table to sync.', 'wp-sync-db' ),
+			'enter_name_for_profile'				=> __( 'Please enter a name for your sync profile.', 'wp-sync-db' ),
+			'save_profile_problem'					=> __( 'An error occurred when attempting to save the sync profile. Please see the Help tab for details on how to request support. (#118)', 'wp-sync-db' ),
+			'exporting_complete'					=> __( 'Exporting complete', 'wp-sync-db' ),
+			'exporting_please_wait'					=> __( 'Exporting, please wait...', 'wp-sync-db' ),
+			'please_wait'							=> __( 'please wait...', 'wp-sync-db' ),
+			'complete'								=> __( 'complete', 'wp-sync-db' ),
+			'migration_failed'						=> __( 'Sync failed', 'wp-sync-db' ),
+			'backing_up'							=> __( 'Backing up', 'wp-sync-db' ),
+			'migrating'								=> __( 'Syncing', 'wp-sync-db' ),
+			'status'								=> __( 'Status', 'wp-sync-db' ),
+			'response'								=> __( 'Response', 'wp-sync-db' ),
+			'table_process_problem'					=> __( 'A problem occurred when attempting to process the following table (#113)', 'wp-sync-db' ),
+			'table_process_problem_empty_response'	=> __( 'A problem occurred when processing the following table. We were expecting a response in JSON format but instead received an empty response.', 'wp-sync-db' ),
+			'completed_with_some_errors'			=> __( 'Sync completed with some errors', 'wp-sync-db' ),
+			'completed_dump_located_at'				=> __( 'Sync complete, your backup is located at:', 'wp-sync-db' ),
+			'finalize_tables_problem'				=> __( 'A problem occurred when finalizing the backup. (#132)', 'wp-sync-db' ),
+			'saved'									=> __( 'Saved', 'wp-sync-db' ),
+			'reset_api_key'							=> __( 'Any sites setup to use the current API key will no longer be able to connect. You will need to update those sites with the newly generated API key. Do you wish to continue?', 'wp-sync-db' ),
+			'reset_api_key_problem'					=> __( 'An error occurred when trying to generate the API key. Please see the Help tab for details on how to request support. (#105)', 'wp-sync-db' ),
+			'remove_profile'						=> __( 'You are removing the following sync profile. This cannot be undone. Do you wish to continue?', 'wp-sync-db' ),
+			'remove_profile_problem'				=> __( 'An error occurred when trying to delete the profile. Please see the Help tab for details on how to request support. (#106)', 'wp-sync-db' ),
+			'remove_profile_not_found'				=> __( 'The selected sync profile could not be deleted because it was not found.\nPlease refresh this page to see an accurate list of the currently available sync profiles.', 'wp-sync-db' ),
+			'change_connection_info'				=> __( 'If you change the connection details, you will lose any replaces and table selections you have made below. Do you wish to continue?', 'wp-sync-db' ),
+			'enter_connection_info'					=> __( 'Please enter the connection information above to continue.', 'wp-sync-db' ),
+			'save_settings_problem'					=> __( 'An error occurred when trying to save the settings. Please try again. If the problem persists, please see the Help tab for details on how to request support. (#108)', 'wp-sync-db' ),
+			'connection_info_missing'				=> __( 'The connection information appears to be missing, please enter it to continue.', 'wp-sync-db' ),
+			'connection_info_incorrect'				=> __( 'The connection information appears to be incorrect, it should consist of two lines. The first being the remote server\'s URL and the second being the secret key.', 'wp-sync-db' ),
+			'connection_info_url_invalid'			=> __( 'The URL on the first line appears to be invalid, please check it and try again.', 'wp-sync-db' ),
+			'connection_info_key_invalid'			=> __( 'The secret key on the second line appears to be invalid. It should be a 32 character string that consists of letters, numbers and special characters only.', 'wp-sync-db' ),
+			'connection_info_local_url'				=> __( 'It appears you\'ve entered the URL for this website, you need to provide the URL of the remote website instead.', 'wp-sync-db' ),
+			'connection_info_local_key'				=> __( 'It appears you\'ve entered the secret key for this website, you need to provide the secret key for the remote website instead.', 'wp-sync-db' ),
+			'time_elapsed'							=> __( 'Time Elapsed:', 'wp-sync-db' ),
+			'pause'									=> __( 'Pause', 'wp-sync-db' ),
+			'migration_paused'						=> __( 'Sync Paused', 'wp-sync-db' ),
+			'resume'								=> __( 'Resume', 'wp-sync-db' ),
+			'completing_current_request'			=> __( 'Completing current request', 'wp-sync-db' ),
+			'cancelling_migration'					=> __( 'Cancelling sync', 'wp-sync-db' ),
+			'paused'								=> __( 'Paused', 'wp-sync-db' ),
+			'removing_local_sql'					=> __( 'Removing the local MySQL export file', 'wp-sync-db' ),
+			'removing_local_backup'					=> __( 'Removing the local backup MySQL export file', 'wp-sync-db' ),
+			'removing_local_temp_tables'			=> __( 'Removing the local temporary tables', 'wp-sync-db' ),
+			'removing_remote_sql'					=> __( 'Removing the remote backup MySQL export file', 'wp-sync-db' ),
+			'removing_remote_temp_tables'			=> __( 'Removing the remote temporary tables', 'wp-sync-db' ),
+			'migration_cancellation_failed'			=> __( 'Sync cancellation failed', 'wp-sync-db' ),
+			'manually_remove_temp_files'			=> __( 'A problem occurred while cancelling the sync, you may have to manually delete some temporary files / tables.', 'wp-sync-db' ),
+			'migration_cancelled'					=> __( 'Sync cancelled', 'wp-sync-db' ),
 		) );
 
 		wp_enqueue_script('jquery');
