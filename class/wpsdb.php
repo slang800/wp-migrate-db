@@ -70,29 +70,29 @@ class WPSDB extends WPSDB_Base {
 		// internal AJAX handlers
 		add_action( 'wp_ajax_wpsdb_verify_connection_to_remote_site', array( $this, 'ajax_verify_connection_to_remote_site' ) );
 		add_action( 'wp_ajax_wpsdb_reset_api_key', array( $this, 'ajax_reset_api_key' ) );
-		add_action( 'wp_ajax_wpsdb_delete_migration_profile', array( $this, 'ajax_delete_migration_profile' ) );
+		add_action( 'wp_ajax_wpsdb_delete_syncing_profile', array( $this, 'ajax_delete_syncing_profile' ) );
 		add_action( 'wp_ajax_wpsdb_save_setting', array( $this, 'ajax_save_setting' ) );
 		add_action( 'wp_ajax_wpsdb_save_profile', array( $this, 'ajax_save_profile' ) );
-		add_action( 'wp_ajax_wpsdb_initiate_migration', array( $this, 'ajax_initiate_migration' ) );
-		add_action( 'wp_ajax_wpsdb_migrate_table', array( $this, 'ajax_migrate_table' ) );
-		add_action( 'wp_ajax_wpsdb_finalize_migration', array( $this, 'ajax_finalize_migration' ) );
+		add_action( 'wp_ajax_wpsdb_initiate_syncing', array( $this, 'ajax_initiate_syncing' ) );
+		add_action( 'wp_ajax_wpsdb_sync_table', array( $this, 'ajax_sync_table' ) );
+		add_action( 'wp_ajax_wpsdb_finalize_syncing', array( $this, 'ajax_finalize_syncing' ) );
 		add_action( 'wp_ajax_wpsdb_clear_log', array( $this, 'ajax_clear_log' ) );
 		add_action( 'wp_ajax_wpsdb_get_log', array( $this, 'ajax_get_log' ) );
-		add_action( 'wp_ajax_wpsdb_fire_migration_complete', array( $this, 'fire_migration_complete' ) );
+		add_action( 'wp_ajax_wpsdb_fire_syncing_complete', array( $this, 'fire_syncing_complete' ) );
 		add_action( 'wp_ajax_wpsdb_update_max_request_size', array( $this, 'ajax_update_max_request_size' ) );
 		add_action( 'wp_ajax_wpsdb_plugin_compatibility', array( $this, 'ajax_plugin_compatibility' ) );
 		add_action( 'wp_ajax_wpsdb_blacklist_plugins', array( $this, 'ajax_blacklist_plugins' ) );
-		add_action( 'wp_ajax_wpsdb_cancel_migration', array( $this, 'ajax_cancel_migration' ) );
+		add_action( 'wp_ajax_wpsdb_cancel_syncing', array( $this, 'ajax_cancel_syncing' ) );
 
 		// external AJAX handlers
 		add_action( 'wp_ajax_nopriv_wpsdb_verify_connection_to_remote_site', array( $this, 'respond_to_verify_connection_to_remote_site' ) );
-		add_action( 'wp_ajax_nopriv_wpsdb_remote_initiate_migration', array( $this, 'respond_to_remote_initiate_migration' ) );
+		add_action( 'wp_ajax_nopriv_wpsdb_remote_initiate_syncing', array( $this, 'respond_to_remote_initiate_syncing' ) );
 		add_action( 'wp_ajax_nopriv_wpsdb_process_chunk', array( $this, 'ajax_process_chunk' ) );
 		add_action( 'wp_ajax_nopriv_wpsdb_process_pull_request', array( $this, 'respond_to_process_pull_request' ) );
-		add_action( 'wp_ajax_nopriv_wpsdb_fire_migration_complete', array( $this, 'fire_migration_complete' ) );
+		add_action( 'wp_ajax_nopriv_wpsdb_fire_syncing_complete', array( $this, 'fire_syncing_complete' ) );
 		add_action( 'wp_ajax_nopriv_wpsdb_backup_remote_table', array( $this, 'respond_to_backup_remote_table' ) );
-		add_action( 'wp_ajax_nopriv_wpsdb_remote_finalize_migration', array( $this, 'respond_to_remote_finalize_migration' ) );
-		add_action( 'wp_ajax_nopriv_wpsdb_process_push_migration_cancellation', array( $this, 'respond_to_process_push_migration_cancellation' ) );
+		add_action( 'wp_ajax_nopriv_wpsdb_remote_finalize_syncing', array( $this, 'respond_to_remote_finalize_syncing' ) );
+		add_action( 'wp_ajax_nopriv_wpsdb_process_push_syncing_cancellation', array( $this, 'respond_to_process_push_syncing_cancellation' ) );
 
 		// Clear update transients when the user clicks the "Check Again" button from the update screen
 		add_action( 'current_screen', array( $this, 'check_again_clear_transients' ) );
@@ -115,12 +115,12 @@ class WPSDB extends WPSDB_Base {
 			'connection_info',
 			'replace_old',
 			'replace_new',
-			'table_migrate_option',
+			'table_sync_option',
 			'select_tables',
 			'replace_guids',
 			'exclude_spam',
-			'save_migration_profile',
-			'save_migration_profile_option',
+			'save_syncing_profile',
+			'save_syncing_profile_option',
 			'create_new_profile',
 			'create_backup',
 			'remove_backup',
@@ -136,7 +136,7 @@ class WPSDB extends WPSDB_Base {
 			'action' => 'savefile',
 			'save_computer' => '1',
 			'gzip_file' => '1',
-			'table_migrate_option' => 'migrate_only_with_prefix',
+			'table_sync_option' => 'sync_only_with_prefix',
 			'replace_guids' => '1',
 			'default_profile' => true,
 			'name' => '',
@@ -289,16 +289,16 @@ class WPSDB extends WPSDB_Base {
 		return ! ( $json == NULL || $json == false );
 	}
 
-	function get_sql_dump_info( $migration_type, $info_type ) {
+	function get_sql_dump_info( $syncing_type, $info_type ) {
 		if( empty( $this->session_salt ) ) {
 			$this->session_salt = strtolower( wp_generate_password( 5, false, false ) );
 		}
 		$datetime = date('YmdHis');
 		$ds = ( $info_type == 'path' ? DS : '/' );
-		return sprintf( '%s%s%s-%s-%s-%s.sql', $this->get_upload_info( $info_type ), $ds, sanitize_title_with_dashes( DB_NAME ), $migration_type, $datetime, $this->session_salt );
+		return sprintf( '%s%s%s-%s-%s-%s.sql', $this->get_upload_info( $info_type ), $ds, sanitize_title_with_dashes( DB_NAME ), $syncing_type, $datetime, $this->session_salt );
 	}
 
-	function parse_migration_form_data( $data ) {
+	function parse_syncing_form_data( $data ) {
 		parse_str( $data, $form_data );
 		$this->accepted_fields = apply_filters( 'wpsdb_accepted_profile_fields', $this->accepted_fields );
 		$form_data = array_intersect_key( $form_data, array_flip( $this->accepted_fields ) );
@@ -462,7 +462,7 @@ class WPSDB extends WPSDB_Base {
 		return substr( $plugin, 1 );
 	}
 
-	function fire_migration_complete() {
+	function fire_syncing_complete() {
 		$filtered_post = $this->filter_post_elements( $_POST, array( 'action', 'url' ) );
 		if ( ! $this->verify_signature( $filtered_post, $this->settings['key'] ) ) {
 			$error_msg = $this->invalid_content_verification_error . ' (#138)';
@@ -471,7 +471,7 @@ class WPSDB extends WPSDB_Base {
 			return $result;
 		}
 
-		do_action( 'wpsdb_migration_complete', 'pull', $_POST['url'] );
+		do_action( 'wpsdb_syncing_complete', 'pull', $_POST['url'] );
 		$result = $this->end_ajax();
 		return $result;
 	}
@@ -489,21 +489,21 @@ class WPSDB extends WPSDB_Base {
 		return $sql;
 	}
 
-	// After table migration, delete old tables and rename new tables removing the temporarily prefix
-	function ajax_finalize_migration() {
-		$this->check_ajax_referer( 'finalize-migration' );
+	// After table syncing, delete old tables and rename new tables removing the temporarily prefix
+	function ajax_finalize_syncing() {
+		$this->check_ajax_referer( 'finalize-syncing' );
 		global $wpdb;
 		$return = '';
 		if ( $_POST['intent'] == 'pull' ) {
-			$return = $this->finalize_migration();
+			$return = $this->finalize_syncing();
 		}
 		else {
-			do_action( 'wpsdb_migration_complete', 'push', $_POST['url'] );
+			do_action( 'wpsdb_syncing_complete', 'push', $_POST['url'] );
 			$data = $_POST;
 			if ( isset( $data['nonce'] ) ) {
 				unset( $data['nonce'] );
 			}
-			$data['action'] = 'wpsdb_remote_finalize_migration';
+			$data['action'] = 'wpsdb_remote_finalize_syncing';
 			$data['intent'] = 'pull';
 			$data['prefix'] = $wpdb->prefix;
 			$data['type'] = 'push';
@@ -521,7 +521,7 @@ class WPSDB extends WPSDB_Base {
 		return $result;
 	}
 
-	function respond_to_remote_finalize_migration() {
+	function respond_to_remote_finalize_syncing() {
 		$filtered_post = $this->filter_post_elements( $_POST, array( 'action', 'intent', 'url', 'key', 'form_data', 'prefix', 'type', 'location', 'tables', 'temp_prefix' ) );
 		if ( ! $this->verify_signature( $filtered_post, $this->settings['key'] ) ) {
 			$error_msg = $this->invalid_content_verification_error . ' (#123)';
@@ -529,12 +529,12 @@ class WPSDB extends WPSDB_Base {
 			$result = $this->end_ajax( $error_msg );
 			return $result;
 		}
-		$return = $this->finalize_migration();
+		$return = $this->finalize_syncing();
 		$result = $this->end_ajax( $return );
 		return $result;
 	}
 
-	function finalize_migration() {
+	function finalize_syncing() {
 		global $wpdb;
 
 		$tables = explode( ',', $_POST['tables'] );
@@ -548,7 +548,7 @@ class WPSDB extends WPSDB_Base {
 
 		$preserved_options = array( 'wpsdb_settings', 'wpsdb_error_log' );
 
-		$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+		$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 		if( isset( $this->form_data['keep_active_plugins'] ) ) {
 			$preserved_options[] = 'active_plugins';
 		}
@@ -584,7 +584,7 @@ class WPSDB extends WPSDB_Base {
 
 		if( ! isset( $_POST['location'] ) ) {
 			$data = array();
-			$data['action'] = 'wpsdb_fire_migration_complete';
+			$data['action'] = 'wpsdb_fire_syncing_complete';
 			$data['url'] = home_url();
 			$data['sig'] = $this->create_signature( $data, $_POST['key'] );
 			$ajax_url = trailingslashit( $_POST['url'] ) . 'wp-admin/admin-ajax.php';
@@ -602,7 +602,7 @@ class WPSDB extends WPSDB_Base {
 		// flush rewrite rules to prevent 404s and other oddities
 		flush_rewrite_rules( true ); // true = hard refresh, recreates the .htaccess file
 
-		do_action( 'wpsdb_migration_complete', $type, $location );
+		do_action( 'wpsdb_syncing_complete', $type, $location );
 	}
 
 	function ajax_process_chunk() {
@@ -675,11 +675,11 @@ class WPSDB extends WPSDB_Base {
 		return true;
 	}
 
-	function ajax_migrate_table() {
-		$this->check_ajax_referer( 'migrate-table' );
+	function ajax_sync_table() {
+		$this->check_ajax_referer( 'sync-table' );
 		global $wpdb;
 
-		$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+		$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 
 		$result = '';
 		// checks if we're performing a backup, if so, continue with the backup and exit immediately after
@@ -708,7 +708,7 @@ class WPSDB extends WPSDB_Base {
 			return $result;
 		}
 
-		// Pull and push need to be handled differently for obvious reasons, trigger different code depending on the migration intent (push or pull)
+		// Pull and push need to be handled differently for obvious reasons, trigger different code depending on the syncing intent (push or pull)
 		if ( $_POST['intent'] == 'push' || $_POST['intent'] == 'savefile' ) {
 			$this->maximum_chunk_size = $this->get_bottleneck();
 			if ( isset( $_POST['bottleneck'] ) ) {
@@ -804,7 +804,7 @@ class WPSDB extends WPSDB_Base {
 			return $result;
 		}
 
-		$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+		$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 		$result = $this->handle_table_backup();
 		return $result;
 	}
@@ -867,11 +867,11 @@ class WPSDB extends WPSDB_Base {
 		return $result;
 	}
 
-	// Occurs right before the first table is migrated / backed up during the migration process
+	// Occurs right before the first table is synced / backed up during the syncing process
 	// Does a quick check to make sure the verification string is valid and also opens / creates files for writing to (if required)
-	function ajax_initiate_migration() {
-		$this->check_ajax_referer( 'initiate-migration' );
-		$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+	function ajax_initiate_syncing() {
+		$this->check_ajax_referer( 'initiate-syncing' );
+		$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 		if ( $_POST['intent'] == 'savefile' ) {
 
 			$return = array(
@@ -880,8 +880,8 @@ class WPSDB extends WPSDB_Base {
 				'body'  => json_encode( array( 'error' => 0 ) ),
 			);
 
-			$return['dump_filename'] = basename( $this->get_sql_dump_info( 'migrate', 'path' ) );
-			$return['dump_url'] = $this->get_sql_dump_info( 'migrate', 'url' );
+			$return['dump_filename'] = basename( $this->get_sql_dump_info( 'sync', 'path' ) );
+			$return['dump_url'] = $this->get_sql_dump_info( 'sync', 'url' );
 			$dump_filename_no_extension = substr( $return['dump_filename'], 0, -4 );
 
 			$create_alter_table_query = $this->get_create_alter_table_query();
@@ -905,7 +905,7 @@ class WPSDB extends WPSDB_Base {
 		else { // does one last check that our verification string is valid
 
 			$data = array(
-				'action'  => 'wpsdb_remote_initiate_migration',
+				'action'  => 'wpsdb_remote_initiate_syncing',
 				'intent' => $_POST['intent'],
 				'form_data' => $_POST['form_data'],
 			);
@@ -961,8 +961,8 @@ class WPSDB extends WPSDB_Base {
 		return $result;
 	}
 
-	// End point for the above remote_post call, ensures that the verification string is valid before continuing with the migration
-	function respond_to_remote_initiate_migration() {
+	// End point for the above remote_post call, ensures that the verification string is valid before continuing with the syncing
+	function respond_to_remote_initiate_syncing() {
 		$return = array();
 		$filtered_post = $this->filter_post_elements( $_POST, array( 'action', 'intent', 'form_data' ) );
 		if ( $this->verify_signature( $filtered_post, $this->settings['key'] ) ) {
@@ -987,7 +987,7 @@ class WPSDB extends WPSDB_Base {
 			$return['message'] = $error_msg;
 		}
 
-		$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+		$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 		if( ! empty( $this->form_data['create_backup'] ) && $_POST['intent'] == 'push' ) {
 			$return['dump_filename'] = basename( $this->get_sql_dump_info( 'backup', 'path' ) );
 			$return['dump_filename'] = substr( $return['dump_filename'], 0, -4 );
@@ -1010,14 +1010,14 @@ class WPSDB extends WPSDB_Base {
 
 	function ajax_save_profile() {
 		$this->check_ajax_referer( 'save-profile' );
-		$profile = $this->parse_migration_form_data( $_POST['profile'] );
+		$profile = $this->parse_syncing_form_data( $_POST['profile'] );
 		$profile = wp_parse_args( $profile, $this->checkbox_options );
-		if ( isset( $profile['save_migration_profile_option'] ) && $profile['save_migration_profile_option'] == 'new' ) {
+		if ( isset( $profile['save_syncing_profile_option'] ) && $profile['save_syncing_profile_option'] == 'new' ) {
 			$profile['name'] = $profile['create_new_profile'];
 			$this->settings['profiles'][] = $profile;
 		}
 		else {
-			$key = $profile['save_migration_profile_option'];
+			$key = $profile['save_syncing_profile_option'];
 			$name = $this->settings['profiles'][$key]['name'];
 			$this->settings['profiles'][$key] = $profile;
 			$this->settings['profiles'][$key]['name'] = $name;
@@ -1037,8 +1037,8 @@ class WPSDB extends WPSDB_Base {
 		return $result;
 	}
 
-	function ajax_delete_migration_profile() {
-		$this->check_ajax_referer( 'delete-migration-profile' );
+	function ajax_delete_syncing_profile() {
+		$this->check_ajax_referer( 'delete-syncing-profile' );
 		$key = absint( $_POST['profile_id'] );
 		--$key;
 		$return = '';
@@ -1104,7 +1104,7 @@ class WPSDB extends WPSDB_Base {
 
 		if ( isset( $_POST['convert_post_type_selection'] ) && '1' == $_POST['convert_post_type_selection'] ) {
 			$profile = (int) $_POST['profile'];
-			unset( $this->settings['profiles'][$profile]['post_type_migrate_option'] );
+			unset( $this->settings['profiles'][$profile]['post_type_sync_option'] );
 			$this->settings['profiles'][$profile]['exclude_post_types'] = '1';
 			$this->settings['profiles'][$profile]['select_post_types'] = array_values( array_diff( $response['post_types'], $this->settings['profiles'][$profile]['select_post_types'] ) );
 			$response['select_post_types'] = $this->settings['profiles'][$profile]['select_post_types'];
@@ -1318,9 +1318,9 @@ class WPSDB extends WPSDB_Base {
 
 		<div class="wrap wpsdb">
 
-			<div id="icon-tools" class="icon32"><br /></div><h2>Migrate DB</h2>
+			<div id="icon-tools" class="icon32"><br /></div><h2>Sync DB</h2>
 
-			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab nav-tab-active js-action-link migrate" data-div-name="migrate-tab"><?php _e( 'Migrate', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link settings" data-div-name="settings-tab"><?php _e( 'Settings', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link help" data-div-name="help-tab"><?php _e( 'Help', 'wp-sync-db' ); ?></a></h2>
+			<h2 class="nav-tab-wrapper"><a href="#" class="nav-tab nav-tab-active js-action-link sync" data-div-name="sync-tab"><?php _e( 'Sync', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link settings" data-div-name="settings-tab"><?php _e( 'Settings', 'wp-sync-db' ); ?></a><a href="#" class="nav-tab js-action-link help" data-div-name="help-tab"><?php _e( 'Help', 'wp-sync-db' ); ?></a></h2>
 
 			<?php do_action( 'wpsdb_notices' ); ?>
 
@@ -1349,7 +1349,7 @@ class WPSDB extends WPSDB_Base {
 			if ( function_exists( 'ini_get' ) && ini_get( 'safe_mode' ) && !$hide_warning ) { ?>
 				<div class="updated warning inline-message">
 					<?php
-					_e( "<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can't extend the run time of the script and ensure it doesn't time out before the migration completes. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. However, if you have trouble, we can't help you until you turn off safe mode.", 'wp-sync-db' );
+					_e( "<strong>PHP Safe Mode Enabled</strong> &mdash; We do not officially support running this plugin in safe mode because <code>set_time_limit()</code> has no effect. Therefore we can't extend the run time of the script and ensure it doesn't time out before the syncing completes. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. However, if you have trouble, we can't help you until you turn off safe mode.", 'wp-sync-db' );
 					if ( function_exists( 'ini_get' ) ) {
 						printf( __( 'Your current PHP run time limit is set to %s seconds.', 'wp-sync-db' ), ini_get( 'max_execution_time' ) );
 					} ?>
@@ -1368,7 +1368,7 @@ class WPSDB extends WPSDB_Base {
 				?>
 				<div class="updated warning inline-message">
 					<?php
-					_e( "<strong>PHP Function Disabled</strong> &mdash; The <code>set_time_limit()</code> function is currently disabled on your server. We use this function to ensure that the migration doesn't time out. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. You may want to contact your web host to enable this function.", 'wp-sync-db' );
+					_e( "<strong>PHP Function Disabled</strong> &mdash; The <code>set_time_limit()</code> function is currently disabled on your server. We use this function to ensure that the syncing doesn't time out. We haven't disabled the plugin however, so you're free to cross your fingers and hope for the best. You may want to contact your web host to enable this function.", 'wp-sync-db' );
 					if ( function_exists( 'ini_get' ) ) {
 						printf( __( 'Your current PHP run time limit is set to %s seconds.', 'wp-sync-db' ), ini_get( 'max_execution_time' ) );
 					} ?>
@@ -1385,7 +1385,7 @@ class WPSDB extends WPSDB_Base {
 					$this->template( 'profile' );
 				}
 				else {
-					$this->template( 'migrate' );
+					$this->template( 'sync' );
 				}
 
 				$this->template( 'settings' );
@@ -1535,7 +1535,7 @@ class WPSDB extends WPSDB_Base {
 		$this->set_time_limit();
 
 		if ( empty( $this->form_data ) ) {
-			$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+			$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 		}
 
 		$temp_prefix = $this->temp_prefix;
@@ -2035,7 +2035,7 @@ class WPSDB extends WPSDB_Base {
 
 	function db_backup_header() {
 		$charset = ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'utf8' );
-		$this->stow( "# " . __( 'WordPress MySQL database migration', 'wp-sync-db' ) . "\n", false );
+		$this->stow( "# " . __( 'WordPress MySQL database syncing', 'wp-sync-db' ) . "\n", false );
 		$this->stow( "#\n", false );
 		$this->stow( "# " . sprintf( __( 'Generated: %s', 'wp-sync-db' ), date( "l j. F Y H:i T" ) ) . "\n", false );
 		$this->stow( "# " . sprintf( __( 'Hostname: %s', 'wp-sync-db' ), DB_HOST ) . "\n", false );
@@ -2169,12 +2169,12 @@ class WPSDB extends WPSDB_Base {
 	}
 
 	function network_admin_menu() {
-		$hook_suffix = add_submenu_page( 'settings.php', 'Migrate DB', 'Migrate DB', 'manage_network_options', 'wp-sync-db', array( $this, 'options_page' ) );
+		$hook_suffix = add_submenu_page( 'settings.php', 'Sync DB', 'Sync DB', 'manage_network_options', 'wp-sync-db', array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
 
 	function admin_menu() {
-		$hook_suffix = add_management_page( 'Migrate DB', 'Migrate DB', 'export', 'wp-sync-db', array( $this, 'options_page' ) );
+		$hook_suffix = add_management_page( 'Sync DB', 'Sync DB', 'export', 'wp-sync-db', array( $this, 'options_page' ) );
 		$this->after_admin_menu( $hook_suffix );
 	}
 
@@ -2231,31 +2231,31 @@ class WPSDB extends WPSDB_Base {
 			'connection_local_server_problem'		=> __( "A problem occurred when attempting to connect to the local server, please check the details and try again.", 'wp-sync-db' ),
 			'clear_log_problem'						=> __( "An error occurred when trying to clear the debug log. Please contact support. (#132)", 'wp-sync-db' ),
 			'update_log_problem'					=> __( "An error occurred when trying to update the debug log. Please contact support. (#133)", 'wp-sync-db' ),
-			'migrate_db_save'						=> __( "Migrate DB & Save", 'wp-sync-db' ),
-			'migrate_db'							=> __( "Migrate DB", 'wp-sync-db' ),
-			'please_select_one_table'				=> __( "Please select at least one table to migrate.", 'wp-sync-db' ),
-			'enter_name_for_profile'				=> __( "Please enter a name for your migration profile.", 'wp-sync-db' ),
-			'save_profile_problem'					=> __( "An error occurred when attempting to save the migration profile. Please see the Help tab for details on how to request support. (#118)", 'wp-sync-db' ),
+			'sync_db_save'						=> __( "Sync DB & Save", 'wp-sync-db' ),
+			'sync_db'							=> __( "Sync DB", 'wp-sync-db' ),
+			'please_select_one_table'				=> __( "Please select at least one table to sync.", 'wp-sync-db' ),
+			'enter_name_for_profile'				=> __( "Please enter a name for your syncing profile.", 'wp-sync-db' ),
+			'save_profile_problem'					=> __( "An error occurred when attempting to save the syncing profile. Please see the Help tab for details on how to request support. (#118)", 'wp-sync-db' ),
 			'exporting_complete'					=> __( "Exporting complete", 'wp-sync-db' ),
 			'exporting_please_wait'					=> __( "Exporting, please wait...", 'wp-sync-db' ),
 			'please_wait'							=> __( "please wait...", 'wp-sync-db' ),
 			'complete'								=> __( "complete", 'wp-sync-db' ),
-			'migration_failed'						=> __( "Migration failed", 'wp-sync-db' ),
+			'syncing_failed'						=> __( "Syncing failed", 'wp-sync-db' ),
 			'backing_up'							=> __( "Backing up", 'wp-sync-db' ),
-			'migrating'								=> __( "Migrating", 'wp-sync-db' ),
+			'syncing'								=> __( "Syncing", 'wp-sync-db' ),
 			'status'								=> __( "Status", 'wp-sync-db' ),
 			'response'								=> __( "Response", 'wp-sync-db' ),
 			'table_process_problem'					=> __( "A problem occurred when attempting to process the following table (#113)", 'wp-sync-db' ),
 			'table_process_problem_empty_response'	=> __( "A problem occurred when processing the following table. We were expecting a response in JSON format but instead received an empty response.", 'wp-sync-db' ),
-			'completed_with_some_errors'			=> __( "Migration completed with some errors", 'wp-sync-db' ),
-			'completed_dump_located_at'				=> __( "Migration complete, your backup is located at:", 'wp-sync-db' ),
+			'completed_with_some_errors'			=> __( "Syncing completed with some errors", 'wp-sync-db' ),
+			'completed_dump_located_at'				=> __( "Syncing complete, your backup is located at:", 'wp-sync-db' ),
 			'finalize_tables_problem'				=> __( "A problem occurred when finalizing the backup. (#132)", 'wp-sync-db' ),
 			'saved'									=> __( "Saved", 'wp-sync-db' ),
 			'reset_api_key'							=> __( "Any sites setup to use the current API key will no longer be able to connect. You will need to update those sites with the newly generated API key. Do you wish to continue?", 'wp-sync-db' ),
 			'reset_api_key_problem'					=> __( "An error occurred when trying to generate the API key. Please see the Help tab for details on how to request support. (#105)", 'wp-sync-db' ),
-			'remove_profile'						=> __( "You are removing the following migration profile. This cannot be undone. Do you wish to continue?", 'wp-sync-db' ),
+			'remove_profile'						=> __( "You are removing the following syncing profile. This cannot be undone. Do you wish to continue?", 'wp-sync-db' ),
 			'remove_profile_problem'				=> __( "An error occurred when trying to delete the profile. Please see the Help tab for details on how to request support. (#106)", 'wp-sync-db' ),
-			'remove_profile_not_found'				=> __( "The selected migration profile could not be deleted because it was not found.\nPlease refresh this page to see an accurate list of the currently available migration profiles.", 'wp-sync-db' ),
+			'remove_profile_not_found'				=> __( "The selected syncing profile could not be deleted because it was not found.\nPlease refresh this page to see an accurate list of the currently available syncing profiles.", 'wp-sync-db' ),
 			'change_connection_info'				=> __( "If you change the connection details, you will lose any replaces and table selections you have made below. Do you wish to continue?", 'wp-sync-db' ),
 			'enter_connection_info'					=> __( "Please enter the connection information above to continue.", 'wp-sync-db' ),
 			'save_settings_problem'					=> __( "An error occurred when trying to save the settings. Please try again. If the problem persists, please see the Help tab for details on how to request support. (#108)", 'wp-sync-db' ),
@@ -2267,19 +2267,19 @@ class WPSDB extends WPSDB_Base {
 			'connection_info_local_key'				=> __( "It appears you've entered the secret key for this website, you need to provide the secret key for the remote website instead.", 'wp-sync-db' ),
 			'time_elapsed'							=> __( "Time Elapsed:", 'wp-sync-db' ),
 			'pause'									=> __( "Pause", 'wp-sync-db' ),
-			'migration_paused'						=> __( "Migration Paused", 'wp-sync-db' ),
+			'syncing_paused'						=> __( "Syncing Paused", 'wp-sync-db' ),
 			'resume'								=> __( "Resume", 'wp-sync-db' ),
 			'completing_current_request'			=> __( "Completing current request", 'wp-sync-db' ),
-			'cancelling_migration'					=> __( "Cancelling migration", 'wp-sync-db' ),
+			'cancelling_syncing'					=> __( "Cancelling syncing", 'wp-sync-db' ),
 			'paused'								=> __( "Paused", 'wp-sync-db' ),
 			'removing_local_sql'					=> __( "Removing the local MySQL export file", 'wp-sync-db' ),
 			'removing_local_backup'					=> __( "Removing the local backup MySQL export file", 'wp-sync-db' ),
 			'removing_local_temp_tables'			=> __( "Removing the local temporary tables", 'wp-sync-db' ),
 			'removing_remote_sql'					=> __( "Removing the remote backup MySQL export file", 'wp-sync-db' ),
 			'removing_remote_temp_tables'			=> __( "Removing the remote temporary tables", 'wp-sync-db' ),
-			'migration_cancellation_failed'			=> __( "Migration cancellation failed", 'wp-sync-db' ),
-			'manually_remove_temp_files'			=> __( "A problem occurred while cancelling the migration, you may have to manually delete some temporary files / tables.", 'wp-sync-db' ),
-			'migration_cancelled'					=> __( "Migration cancelled", 'wp-sync-db' ),
+			'syncing_cancellation_failed'			=> __( "Syncing cancellation failed", 'wp-sync-db' ),
+			'manually_remove_temp_files'			=> __( "A problem occurred while cancelling the syncing, you may have to manually delete some temporary files / tables.", 'wp-sync-db' ),
+			'syncing_cancelled'					=> __( "Syncing cancelled", 'wp-sync-db' ),
 		) );
 
 		wp_enqueue_script('jquery');
@@ -2326,11 +2326,11 @@ class WPSDB extends WPSDB_Base {
 			'clear_log'							=> wp_create_nonce( 'clear-log' ),
 			'get_log'							=> wp_create_nonce( 'get-log' ),
 			'save_profile'						=> wp_create_nonce( 'save-profile' ),
-			'initiate_migration'				=> wp_create_nonce( 'initiate-migration' ),
-			'migrate_table'						=> wp_create_nonce( 'migrate-table' ),
-			'finalize_migration'				=> wp_create_nonce( 'finalize-migration' ),
+			'initiate_syncing'				=> wp_create_nonce( 'initiate-syncing' ),
+			'sync_table'						=> wp_create_nonce( 'sync-table' ),
+			'finalize_syncing'				=> wp_create_nonce( 'finalize-syncing' ),
 			'reset_api_key'						=> wp_create_nonce( 'reset-api-key' ),
-			'delete_migration_profile'			=> wp_create_nonce( 'delete-migration-profile' ),
+			'delete_syncing_profile'			=> wp_create_nonce( 'delete-syncing-profile' ),
 			'save_setting'						=> wp_create_nonce( 'save-setting' ),
 		);
 
@@ -2374,8 +2374,8 @@ class WPSDB extends WPSDB_Base {
 			$profile_changed = true;
 		}
 
-		if ( isset( $profile['post_type_migrate_option'] ) && 'migrate_select_post_types' == $profile['post_type_migrate_option'] && 'pull' != $profile['action'] ) {
-			unset( $profile['post_type_migrate_option'] );
+		if ( isset( $profile['post_type_sync_option'] ) && 'sync_select_post_types' == $profile['post_type_sync_option'] && 'pull' != $profile['action'] ) {
+			unset( $profile['post_type_sync_option'] );
 			$profile['exclude_post_types'] = '1';
 			$all_post_types = $this->get_post_types();
 			$profile['select_post_types'] = array_diff( $all_post_types, $profile['select_post_types'] );
@@ -2433,8 +2433,8 @@ class WPSDB extends WPSDB_Base {
 		echo ( isset( $option ) && $option == '1' ) ? ' checked="checked"' : '';
 	}
 
-	function ajax_cancel_migration() {
-		$this->form_data = $this->parse_migration_form_data( $_POST['form_data'] );
+	function ajax_cancel_syncing() {
+		$this->form_data = $this->parse_syncing_form_data( $_POST['form_data'] );
 
 		switch( $_POST['intent'] ) {
 			case 'savefile' :
@@ -2443,7 +2443,7 @@ class WPSDB extends WPSDB_Base {
 
 			case 'push' :
 				$data = $_POST;
-				$data['action'] = 'wpsdb_process_push_migration_cancellation';
+				$data['action'] = 'wpsdb_process_push_syncing_cancellation';
 				$data['temp_prefix'] = $this->temp_prefix;
 				$ajax_url = trailingslashit( $data['url'] ) . 'wp-admin/admin-ajax.php';
 				$data['sig'] = $this->create_signature( $data, $data['key'] );
@@ -2470,14 +2470,14 @@ class WPSDB extends WPSDB_Base {
 		exit;
 	}
 
-	function respond_to_process_push_migration_cancellation() {
+	function respond_to_process_push_syncing_cancellation() {
 		$filtered_post = $this->filter_post_elements( $_POST, array( 'action', 'intent', 'url', 'key', 'form_data', 'dump_filename', 'temp_prefix', 'stage' ) );
 		if ( ! $this->verify_signature( $filtered_post, $this->settings['key'] ) ) {
 			echo $this->invalid_content_verification_error;
 			exit;
 		}
 
-		$this->form_data = $this->parse_migration_form_data( $filtered_post['form_data'] );
+		$this->form_data = $this->parse_syncing_form_data( $filtered_post['form_data'] );
 
 		if( $filtered_post['stage'] == 'backup' ) {
 			$this->delete_export_file( $filtered_post['dump_filename'], true );

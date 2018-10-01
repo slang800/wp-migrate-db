@@ -11,16 +11,16 @@
      Common & Global
      ========================================================================== */
   /* =============================================================================
-     Migrate Tab
+     Sync Tab
      ========================================================================== */
   /* Misc */
   /* Tabs */
-  /* Saved migration profile selection */
+  /* Saved syncing profile selection */
   /* Output Selection */
   /* Find and Replace */
   /* Select Tables */
   /* Advanced Options */
-  /* Save migration profile */
+  /* Save syncing profile */
   /* Action buttons */
   /* =============================================================================
      Settings Tab
@@ -82,17 +82,17 @@
   font-size: 18px;
   font-weight: normal;
 }
-.wpsdb p.migrate-db {
+.wpsdb p.sync-db {
   overflow: hidden;
 }
-.wpsdb p.migrate-db input {
+.wpsdb p.sync-db input {
   float: left;
 }
-.wpsdb p.migrate-db img {
+.wpsdb p.sync-db img {
   float: left;
   margin: 3px 0 0 5px;
 }
-.wpsdb p.migrate-db .save-settings-button {
+.wpsdb p.sync-db .save-settings-button {
   margin-left: 10px;
   display: none;
 }
@@ -160,11 +160,11 @@
   display: inline-block;
   clear: both;
 }
-.wpsdb .migration-profile-options li {
+.wpsdb .syncing-profile-options li {
   position: relative;
   width: 520px;
 }
-.wpsdb .migration-profile-options li a {
+.wpsdb .syncing-profile-options li a {
   padding: 5px 10px;
   width: 500px;
   border: 1px solid #ddd;
@@ -173,7 +173,7 @@
   font-size: 14px;
   color: #333;
 }
-.wpsdb .migration-profile-options li a:hover {
+.wpsdb .syncing-profile-options li a:hover {
   border-color: #bbb;
 }
 .wpsdb .main-list-delete-profile-link {
@@ -219,11 +219,11 @@
 .wpsdb .expand-collapse-arrow {
   margin-right: 9px;
 }
-.wpsdb .migrate-connection-info {
+.wpsdb .sync-connection-info {
   min-width: 675px;
   margin: 0;
 }
-.wpsdb .migrate-tab .pull-push-connection-info {
+.wpsdb .sync-tab .pull-push-connection-info {
   width: 418px;
   height: 65px;
   color: #333;
@@ -361,11 +361,11 @@
   min-height: 180px;
   margin-bottom: 10px;
 }
-.wpsdb .table-migrate-options li label {
+.wpsdb .table-sync-options li label {
   font-size: 12px;
   font-weight: normal;
 }
-.wpsdb .table-migrate-options li {
+.wpsdb .table-sync-options li {
   margin-bottom: 5px;
 }
 .wpsdb .general-helper {
@@ -494,15 +494,15 @@
   color: #CC0000;
   text-decoration: underline;
 }
-.wpsdb .save-migration-profile-wrap li label {
+.wpsdb .save-syncing-profile-wrap li label {
   font-size: 12px;
   font-weight: normal;
 }
-.wpsdb .save-migration-profile-wrap li {
+.wpsdb .save-syncing-profile-wrap li {
   margin-bottom: 5px;
   padding-left: 25px;
 }
-.wpsdb .save-migration-profile-wrap .indent-wrap {
+.wpsdb .save-syncing-profile-wrap .indent-wrap {
   margin-left: 0px;
 }
 .wpsdb .create-new-label {
@@ -546,7 +546,7 @@
 .wpsdb .delete-profile:hover {
   border-color: #aaa;
 }
-.wpsdb .migrate-db .ajax-success-msg {
+.wpsdb .sync-db .ajax-success-msg {
   font-weight: bold;
   margin: 3px 0 0 9px;
   display: inline-block;
@@ -834,7 +834,7 @@
   height: 16px;
 }
 
-.migration-error {
+.syncing-error {
   color: #A21B1B;
   display: block;
   font-weight: bold;
@@ -990,7 +990,7 @@
   left: 50%;
   margin-left: -2px;
 }
-.progress-content .migration-progress-ajax-spinner {
+.progress-content .syncing-progress-ajax-spinner {
   left: 7px;
   position: relative;
   top: 15px;
@@ -1011,16 +1011,16 @@
   color: #666;
   border-color: #aaa;
 }
-.progress-content .migration-controls {
+.progress-content .syncing-controls {
   display: block;
   margin-top: 45px;
 }
-.progress-content .migration-controls span {
+.progress-content .syncing-controls span {
   float: left;
   text-align: center;
   display: block;
 }
-.progress-content .migration-controls span:first-child {
+.progress-content .syncing-controls span:first-child {
   margin-right: 10px;
   width: 71px;
 }
@@ -1065,12 +1065,12 @@ body.mp6 .wpsdb .help-tab h3 {
 body.mp6 .wpsdb .temp-disabled {
   background-color: #f9f9f9;
 }
-body.mp6 .wpsdb .migration-profile-options li a {
+body.mp6 .wpsdb .syncing-profile-options li a {
   border-color: #ccc;
   color: #555;
   background-color: #e4e4e4;
 }
-body.mp6 .wpsdb .migration-profile-options li a:hover {
+body.mp6 .wpsdb .syncing-profile-options li a:hover {
   background-color: #fff;
   color: #464646;
 }
@@ -1091,7 +1091,7 @@ body.mp6 .wpsdb .settings-tab .option-section li label {
   font-size: 14px;
 }
 body.mp6 .wpsdb .connection-info,
-body.mp6 .wpsdb .migrate-tab .pull-push-connection-info {
+body.mp6 .wpsdb .sync-tab .pull-push-connection-info {
   font-weight: bold;
   font-size: 14px;
 }
@@ -1148,10 +1148,10 @@ body.mp6 .wpsdb .replace-add-row:after, body.mp6 .wpsdb .replace-add-row:before 
 body.mp6 .wpsdb .replace-add-row:hover:after, body.mp6 .wpsdb .replace-add-row:hover:before {
   background-color: #666;
 }
-body.mp6 .wpsdb .option-group.migrate-selection > li > label {
+body.mp6 .wpsdb .option-group.sync-selection > li > label {
   font-size: 16px;
 }
-body.mp6 .wpsdb .saved-migration-profile-label {
+body.mp6 .wpsdb .saved-syncing-profile-label {
   font-size: 16px;
 }
 body.mp6 .wpsdb .option-heading, body.mp6 .wpsdb .checkbox-label {
@@ -1166,7 +1166,7 @@ body.mp6 .wpsdb .return-to-profile-selection {
 body.mp6 .wpsdb .option-description {
   font-size: 13px;
 }
-body.mp6 .wpsdb .save-migration-profile-wrap li {
+body.mp6 .wpsdb .save-syncing-profile-wrap li {
   position: relative;
 }
 body.mp6 .wpsdb .replace-remove-row,
@@ -1267,6 +1267,6 @@ body.mp6 .progress-content .progress-bar {
 body.mp6 #overlay {
   background-color: rgba(0, 0, 0, 0.5);
 }
-body.mp6 .migration-progress-ajax-spinner {
+body.mp6 .syncing-progress-ajax-spinner {
   top: 20px;
 }
