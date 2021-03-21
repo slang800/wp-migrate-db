@@ -1,15 +1,15 @@
 <?php
 /*
-Plugin Name: WP Sync DB
-Description: Export, push, and pull to migrate your WordPress databases.
-Author: Sean Lang
-Version: 1.5
+Plugin Name: WP Sync DB Reload
+Description: Reloaded version. Export, push, and pull to migrate your WordPress databases.
+Author: Daniel Bośnjak, Sean Lang
+Version: 2.0
 Author URI: http://slang.cx
-GitHub Plugin URI: wp-sync-db/wp-sync-db
+GitHub Plugin URI: danone89/wp-sync-db
 Network: True
 */
 
-$GLOBALS['wpsdb_meta']['wp-sync-db']['version'] = '1.5';
+$GLOBALS['wpsdb_meta']['wp-sync-db']['version'] = '2.0';
 $GLOBALS['wpsdb_meta']['wp-sync-db']['folder'] = basename( plugin_dir_path( __FILE__ ) );
 
 // Define the directory seperator if it isn't already

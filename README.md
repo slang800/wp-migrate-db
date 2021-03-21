@@ -1,12 +1,12 @@
+
+# From Maintainer
+This is  fixed version of wp-sync-db plugin. Since orginal author dropped support - I made some fixes for PHP 7.X and Wordpress 5.X
+
 # WP Sync DB
 
 WP Sync DB eliminates the manual work of migrating a WP database. Copy your db from one WP install to another with a single-click in your dashboard. Especially handy for syncing a local development database with a live site.
 
 <p align="center"><img src="https://raw.github.com/slang800/psychic-ninja/master/wp-migrate-db.png"/></p>
-
-## Looking for a Maintainer
-
-I've moved away from PHP & WordPress work and don't have time to maintain this. If you're a talented PHP developer I'd be happy to give you this repo. Grab the latest code from [delicious-brains](https://github.com/wp-sync-db/wp-sync-db/tree/delicious-brains), remove the license checking, branding, & other cruft, and open up a PR to show me your work.
 
 ## Description
 
