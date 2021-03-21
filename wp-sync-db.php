@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: WP Sync DB
-Description: Export, push, and pull to migrate your WordPress databases.
-Author: Sean Lang
-Version: 1.5
+Plugin Name: WP Sync DB Reload
+Description: Reloaded version. Export, push, and pull to migrate your WordPress databases.
+Author: Daniel Bośnjak, Sean Lang
+Version: 2.0
 Author URI: http://slang.cx
-GitHub Plugin URI: wp-sync-db/wp-sync-db
+GitHub Plugin URI: danone89/wp-sync-db
 Network: True
 */
 
