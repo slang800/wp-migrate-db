@@ -9,7 +9,7 @@ GitHub Plugin URI: danone89/wp-sync-db
 Network: True
 */
 
-$GLOBALS['wpsdb_meta']['wp-sync-db']['version'] = '1.5';
+$GLOBALS['wpsdb_meta']['wp-sync-db']['version'] = '2.0';
 $GLOBALS['wpsdb_meta']['wp-sync-db']['folder'] = basename( plugin_dir_path( __FILE__ ) );
 
 // Define the directory seperator if it isn't already
